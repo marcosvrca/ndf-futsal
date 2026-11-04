@@ -11,8 +11,7 @@
  */
 window.NDF_CONFIG = {
   // Substitua pela sua chave do Web3Forms
-  WEB3FORMS_ACCESS_KEY: "COLE_SUA_CHAVE_AQUI",
-
+  WEB3FORMS_ACCESS_KEY: "0a4afb91-9c4d-40f6-9e2f-ec38eee59bc2",
   // E-mail que aparece no assunto (o destino real é o da chave Web3Forms)
   CLUBE_NOME: "COOP/FLAPALMAS FUTSAL",
 
