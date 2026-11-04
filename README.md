@@ -7,52 +7,45 @@ Landing page estática (HTML/CSS/JS) para cobrança de mensalidade da **COOP/FLA
 - Formulário: nome, sobrenome, CPF, e-mail e periodicidade
 - Validação de CPF
 - Cálculo do valor (base × período)
-- Envio por e-mail via [Web3Forms](https://web3forms.com) (grátis)
+- Gravação em **Google Sheets** (Apps Script)
 - Botão de pagamento por periodicidade (Mercado Pago)
 
-## Configurar em 5 minutos
+## 1) Ligar o Google Sheets (5 minutos)
 
-1. Abra `config.js`
-2. Em [web3forms.com](https://web3forms.com), crie uma Access Key com o e-mail do clube e cole em `WEB3FORMS_ACCESS_KEY`
-3. Ajuste `VALOR_MENSAL` (padrão: `10`)
-4. Cole os links do Mercado Pago em `PAYMENT_LINKS` (Mensal / Trimestral / Semestral / Anual)
+1. Crie uma planilha em [sheets.google.com](https://sheets.google.com) (ex.: `NDF Futsal — Mensalidades`)
+2. Menu **Extensões → Apps Script**
+3. Apague o código padrão e cole o conteúdo de `google-apps-script/Code.gs`
+4. Salve o projeto
+5. **Implantar → Nova implantação**
+   - Tipo: **App da Web**
+   - Executar como: **Eu**
+   - Quem tem acesso: **Qualquer pessoa**
+6. Autorize a conta Google quando pedir
+7. Copie a URL (termina com `/exec`)
+8. Cole em `config.js` → `GOOGLE_SCRIPT_URL`
 
-## Testar local
+Na primeira inscrição o script cria a aba **Cadastros** com as colunas:
+`Data/Hora | Nome | Sobrenome | CPF | E-mail | Periodicidade | Valor | Status pagamento`
 
-Abra `index.html` no navegador, ou:
+## 2) Cobranças (Mercado Pago)
 
-```bash
-cd C:\Users\04510018185\Documents\projetos\ndf_futsal
-npx --yes serve .
-```
+1. Crie links/planos no Mercado Pago (Mensal, Trimestral, Semestral, Anual)
+2. Cole em `config.js` → `PAYMENT_LINKS`
+3. Ajuste `VALOR_MENSAL` se necessário
 
-## Publicar no GitHub Pages (grátis)
+## 3) Publicar no GitHub Pages
 
-```bash
-cd C:\Users\04510018185\Documents\projetos\ndf_futsal
-git init
-git add .
-git commit -m "Landing de mensalidade Flapalmas Futsal"
-```
+Repo: https://github.com/marcosvrca/ndf-futsal
 
-1. Crie um repositório no GitHub (ex.: `ndf_futsal`)
-2. Conecte e envie:
+No GitHub: **Settings → Pages → Branch `main` / pasta `/ (root)`**
 
-```bash
-git remote add origin https://github.com/SEU_USUARIO/ndf_futsal.git
-git branch -M main
-git push -u origin main
-```
-
-3. No GitHub: **Settings → Pages → Branch: `main` / pasta `/ (root)` → Save**
-4. Em alguns minutos o site fica em:  
-   `https://SEU_USUARIO.github.io/ndf_futsal/`
+Site: `https://marcosvrca.github.io/ndf-futsal/`
 
 ## Custos
 
 | Item | Custo |
 |------|--------|
 | GitHub Pages | Grátis |
-| Web3Forms (plano free) | Grátis |
+| Google Sheets + Apps Script | Grátis |
 | Mercado Pago | Só taxa por pagamento |
 | Domínio próprio (opcional) | ~R$ 40–80/ano |

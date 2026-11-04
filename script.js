@@ -70,6 +70,18 @@
     input.classList.toggle("is-invalid", !valid);
   }
 
+  function showSuccess(data, total) {
+    const links = config.PAYMENT_LINKS || {};
+    const href = links[data.periodicidade] || "#";
+    payLink.href = href;
+    payLink.style.display = href === "#" ? "none" : "inline-flex";
+
+    successText.textContent = `${data.nome}, seu cadastro (${data.periodicidade} — ${formatBRL(total)}) foi salvo na planilha.`;
+    form.hidden = true;
+    successPanel.hidden = false;
+    setStatus("");
+  }
+
   cpfInput.addEventListener("input", () => {
     cpfInput.value = maskCPF(cpfInput.value);
   });
@@ -92,7 +104,6 @@
       periodicidade: selectedPeriod(),
     };
 
-    let valid = true;
     markValidity(form.nome, Boolean(data.nome));
     markValidity(form.sobrenome, Boolean(data.sobrenome));
     markValidity(form.email, form.email.checkValidity());
@@ -100,63 +111,62 @@
     markValidity(form.cpf, cpfOk);
 
     if (!data.nome || !data.sobrenome || !form.email.checkValidity() || !cpfOk) {
-      valid = false;
-    }
-
-    if (!valid) {
       setStatus(cpfOk ? "Preencha os campos obrigatórios corretamente." : "Informe um CPF válido.");
       return;
     }
 
-    const accessKey = (config.WEB3FORMS_ACCESS_KEY || "").trim();
-    if (!accessKey || accessKey === "COLE_SUA_CHAVE_AQUI") {
-      setStatus("Configure WEB3FORMS_ACCESS_KEY em config.js (grátis em web3forms.com).");
+    const scriptUrl = (config.GOOGLE_SCRIPT_URL || "").trim();
+    if (!scriptUrl || scriptUrl === "COLE_A_URL_DO_APPS_SCRIPT_AQUI") {
+      setStatus("Configure GOOGLE_SCRIPT_URL em config.js (veja README).");
       return;
     }
 
     const total =
       (Number(config.VALOR_MENSAL) || 0) * (multipliers[data.periodicidade] || 1);
 
+    const payload = {
+      nome: data.nome,
+      sobrenome: data.sobrenome,
+      cpf: data.cpf,
+      email: data.email,
+      periodicidade: data.periodicidade,
+      valor: formatBRL(total),
+      status_pagamento: "Pendente",
+      clube: config.CLUBE_NOME || "NDF Futsal",
+    };
+
     submitBtn.disabled = true;
     submitBtn.textContent = "Enviando...";
 
     try {
-      const response = await fetch("https://api.web3forms.com/submit", {
+      // text/plain evita preflight CORS bloqueado pelo Apps Script
+      const response = await fetch(scriptUrl, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({
-          access_key: accessKey,
-          subject: `Mensalidade ${data.periodicidade} — ${config.CLUBE_NOME || "NDF Futsal"}`,
-          from_name: `${data.nome} ${data.sobrenome}`,
-          nome: data.nome,
-          sobrenome: data.sobrenome,
-          cpf: data.cpf,
-          email: data.email,
-          periodicidade: data.periodicidade,
-          valor: formatBRL(total),
-        }),
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload),
+        redirect: "follow",
       });
 
-      const result = await response.json();
-      if (!response.ok || !result.success) {
+      let result = null;
+      const text = await response.text();
+      try {
+        result = JSON.parse(text);
+      } catch (_) {
+        // Alguns redirects do Apps Script retornam HTML; se chegou 200, segue
+      }
+
+      if (result && result.success === false) {
         throw new Error(result.message || "Falha no envio");
       }
 
-      const links = config.PAYMENT_LINKS || {};
-      const href = links[data.periodicidade] || "#";
-      payLink.href = href;
-      payLink.style.display = href === "#" ? "none" : "inline-flex";
+      if (!response.ok && !result) {
+        throw new Error("HTTP " + response.status);
+      }
 
-      successText.textContent = `${data.nome}, seu cadastro (${data.periodicidade} — ${formatBRL(total)}) foi enviado.`;
-      form.hidden = true;
-      successPanel.hidden = false;
-      setStatus("");
+      showSuccess(data, total);
     } catch (error) {
       console.error(error);
-      setStatus("Não foi possível enviar agora. Tente novamente em instantes.");
+      setStatus("Não foi possível salvar na planilha. Confira a URL do Apps Script.");
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = "Continuar";
