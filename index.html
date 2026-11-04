@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Formulário de mensalidade — COOP/FLAPALMAS FUTSAL" />
+  <title>Formulário de Mensalidade | COOP/FLAPALMAS FUTSAL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <main class="page">
+    <header class="brand">
+      <p class="brand__name">COOP/FLAPALMAS FUTSAL</p>
+      <h1>Formulário de Mensalidade</h1>
+      <p class="brand__lead">
+        Selecione a opção de pagamento (mensal, trimestral, semestral ou anual)
+        e preencha os dados solicitados.
+      </p>
+    </header>
+
+    <section class="card" aria-labelledby="form-title">
+      <h2 id="form-title" class="sr-only">Dados da mensalidade</h2>
+
+      <form id="mensalidade-form" novalidate>
+        <div class="field-row">
+          <div class="field">
+            <label for="nome">Nome <span aria-hidden="true">*</span></label>
+            <input id="nome" name="nome" type="text" autocomplete="given-name" required />
+          </div>
+          <div class="field">
+            <label for="sobrenome">Sobrenome <span aria-hidden="true">*</span></label>
+            <input id="sobrenome" name="sobrenome" type="text" autocomplete="family-name" required />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="cpf">CPF <span aria-hidden="true">*</span></label>
+          <input
+            id="cpf"
+            name="cpf"
+            type="text"
+            inputmode="numeric"
+            placeholder="000.000.000-00"
+            maxlength="14"
+            required
+          />
+        </div>
+
+        <div class="field">
+          <label for="email">E-mail <span aria-hidden="true">*</span></label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            placeholder="exemplo@exemplo.com"
+            required
+          />
+        </div>
+
+        <fieldset class="field field--period">
+          <legend>Periodicidade <span aria-hidden="true">*</span></legend>
+          <p class="hint">Escolha a periodicidade desejada.</p>
+          <div class="period-grid" role="radiogroup" aria-label="Periodicidade">
+            <label class="period">
+              <input type="radio" name="periodicidade" value="Mensal" required checked />
+              <span>
+                <strong>Mensal</strong>
+                <small>1× o valor</small>
+              </span>
+            </label>
+            <label class="period">
+              <input type="radio" name="periodicidade" value="Trimestral" />
+              <span>
+                <strong>Trimestral</strong>
+                <small>3× o valor</small>
+              </span>
+            </label>
+            <label class="period">
+              <input type="radio" name="periodicidade" value="Semestral" />
+              <span>
+                <strong>Semestral</strong>
+                <small>6× o valor</small>
+              </span>
+            </label>
+            <label class="period">
+              <input type="radio" name="periodicidade" value="Anual" />
+              <span>
+                <strong>Anual</strong>
+                <small>12× o valor</small>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+
+        <p class="valor" id="valor-resumo">Valor estimado: <strong>R$ 10,00</strong></p>
+
+        <button type="submit" class="btn" id="submit-btn">Continuar</button>
+        <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+      </form>
+
+      <div class="success" id="success-panel" hidden>
+        <h3>Dados recebidos</h3>
+        <p id="success-text"></p>
+        <a class="btn btn--pay" id="pay-link" href="#" target="_blank" rel="noopener noreferrer">
+          Ir para o pagamento
+        </a>
+        <button type="button" class="btn btn--ghost" id="reset-btn">Enviar outro cadastro</button>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>COOP/FLAPALMAS FUTSAL · Mensalidades</p>
+    </footer>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
