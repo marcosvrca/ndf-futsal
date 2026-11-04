@@ -76,7 +76,11 @@
     payLink.href = href;
     payLink.style.display = href === "#" ? "none" : "inline-flex";
 
-    successText.textContent = `${data.nome}, seu cadastro (${data.periodicidade} — ${formatBRL(total)}) foi salvo na planilha.`;
+    const mesesOk = multipliers[data.periodicidade] || 1;
+    successText.textContent =
+      mesesOk > 1
+        ? `${data.nome}, cadastro salvo (${data.periodicidade} — ${formatBRL(total)}). Foram geradas ${mesesOk} competências na aba Pagamentos.`
+        : `${data.nome}, cadastro salvo (${data.periodicidade} — ${formatBRL(total)}) na planilha.`;
     form.hidden = true;
     successPanel.hidden = false;
     setStatus("");
@@ -124,12 +128,18 @@
     const total =
       (Number(config.VALOR_MENSAL) || 0) * (multipliers[data.periodicidade] || 1);
 
+    const meses = multipliers[data.periodicidade] || 1;
+    const valorMensal = Number(config.VALOR_MENSAL) || 0;
+
     const payload = {
       nome: data.nome,
       sobrenome: data.sobrenome,
       cpf: data.cpf,
       email: data.email,
       periodicidade: data.periodicidade,
+      meses: meses,
+      valor_mensal: valorMensal,
+      valor_total: total,
       valor: formatBRL(total),
       status_pagamento: "Pendente",
       clube: config.CLUBE_NOME || "NDF Futsal",

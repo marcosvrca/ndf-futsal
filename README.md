@@ -24,8 +24,17 @@ Landing page estática (HTML/CSS/JS) para cobrança de mensalidade da **COOP/FLA
 7. Copie a URL (termina com `/exec`)
 8. Cole em `config.js` → `GOOGLE_SCRIPT_URL`
 
-Na primeira inscrição o script cria a aba **Cadastros** com as colunas:
-`Data/Hora | Nome | Sobrenome | CPF | E-mail | Periodicidade | Valor | Status pagamento`
+### Abas da planilha
+
+| Aba | Função |
+|-----|--------|
+| **Cadastros** | 1 linha por inscrição (quem assinou e o período) |
+| **Pagamentos** | 1 linha **por mês coberto** — ex.: Trimestral cria 3 linhas |
+| **MesAtual** | Painel com pendentes/todos do mês corrente |
+
+Exemplo: cliente escolhe **Trimestral** → entram Nov, Dez e Jan em **Pagamentos**, status `Pendente`. O responsável só marca `Pago` (dropdown).
+
+**Ao atualizar o `Code.gs`:** use **Gerenciar implantações → editar → Nova versão** (não crie implantação nova, senão a URL muda).
 
 ## 2) Cobranças (Mercado Pago)
 
