@@ -17,13 +17,6 @@ var MESES_PT = [
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ];
 
-var PERIODOS = {
-  Mensal: 1,
-  Trimestral: 3,
-  Semestral: 6,
-  Anual: 12,
-};
-
 function doGet() {
   return json_({
     ok: true,
@@ -75,13 +68,16 @@ function ensureCadastros_() {
       "Sobrenome",
       "CPF",
       "E-mail",
+      "Plano",
       "Periodicidade",
       "Meses",
       "Valor total",
-      "Valor mensal",
+      "Valor parcela",
+      "Contrato ciente",
+      "Uso de imagem",
       "Status",
     ]);
-    sheet.getRange(1, 1, 1, 11).setFontWeight("bold");
+    sheet.getRange(1, 1, 1, 14).setFontWeight("bold");
     sheet.setFrozenRows(1);
   }
   return sheet;
@@ -113,7 +109,6 @@ function ensurePagamentos_() {
     sheet.getRange(1, 1, 1, 15).setFontWeight("bold");
     sheet.setFrozenRows(1);
 
-    // Dropdown de status (linhas futuras)
     var rule = SpreadsheetApp.newDataValidation()
       .requireValueInList(["Pendente", "Pago", "Isento", "Cancelado"], true)
       .setAllowInvalid(false)
@@ -128,7 +123,6 @@ function ensureMesAtual_() {
   var sheet = ss.getSheetByName(ABA_MES);
   if (!sheet) sheet = ss.insertSheet(ABA_MES);
 
-  // Painel do mês corrente (fórmulas — locale BR usa ;)
   sheet.clear();
   sheet.getRange("A1").setValue("Painel do mês atual").setFontWeight("bold").setFontSize(14);
   sheet.getRange("A2").setValue("Competência de referência:");
@@ -154,16 +148,15 @@ function nextCadastroId_(sheet) {
   return "CAD-" + (num + 1);
 }
 
-function mesesDaPeriodicidade_(periodicidade, data) {
+function mesesDoPlano_(data) {
   if (data.meses) return Math.max(1, parseInt(data.meses, 10) || 1);
-  return PERIODOS[periodicidade] || 1;
+  return 1;
 }
 
-function valorMensal_(data, meses) {
+function valorParcela_(data, meses) {
   if (data.valor_mensal !== undefined && data.valor_mensal !== "") {
     return Number(data.valor_mensal);
   }
-  // Se veio só o total formatado ("R$ 30,00"), tenta extrair
   var bruto = String(data.valor || "").replace(/[^\d,.-]/g, "").replace(".", "").replace(",", ".");
   var total = Number(bruto);
   if (!isNaN(total) && meses > 0) return total / meses;
@@ -192,13 +185,17 @@ function registrarInscricao_(data) {
   ensureMesAtual_();
 
   var agora = new Date();
-  var periodicidade = data.periodicidade || "Mensal";
-  var meses = mesesDaPeriodicidade_(periodicidade, data);
-  var vMensal = valorMensal_(data, meses);
+  var periodicidade = data.periodicidade || data.plano_label || "Mensal";
+  var planoLabel = data.plano_label || periodicidade;
+  var meses = mesesDoPlano_(data);
+  var vParcela = valorParcela_(data, meses);
   var vTotal = data.valor_total !== undefined && data.valor_total !== ""
     ? Number(data.valor_total)
-    : vMensal * meses;
+    : vParcela * meses;
   var id = nextCadastroId_(cadSheet);
+  var ciente = data.contrato_ciente === true || data.contrato_ciente === "true" || data.contrato_ciente === "Sim"
+    ? "Sim"
+    : "Não";
 
   cadSheet.appendRow([
     id,
@@ -207,17 +204,20 @@ function registrarInscricao_(data) {
     data.sobrenome || "",
     data.cpf || "",
     data.email || "",
+    planoLabel,
     periodicidade,
     meses,
     vTotal,
-    vMensal,
+    vParcela,
+    ciente,
+    data.uso_imagem || "",
     data.status_pagamento || "Pendente",
   ]);
 
   var rows = [];
   for (var i = 0; i < meses; i++) {
     var ref = addMonths_(agora, i);
-    var venc = new Date(ref.getFullYear(), ref.getMonth(), 10); // dia 10 de cada mês
+    var venc = new Date(ref.getFullYear(), ref.getMonth(), 10);
     rows.push([
       id,
       competencia_(ref),
@@ -229,13 +229,15 @@ function registrarInscricao_(data) {
       data.email || "",
       periodicidade,
       i + 1 + "/" + meses,
-      vMensal,
+      vParcela,
       venc,
       "Pendente",
       "",
       meses > 1
-        ? "Gerado automaticamente (" + periodicidade + " à vista no site)"
-        : "Mensalidade do mês",
+        ? "Gerado automaticamente (" + planoLabel + ")"
+        : data.tipo_plano === "mensal"
+          ? "Mensalidade do mês"
+          : "Pagamento à vista / mensal",
     ]);
   }
 
