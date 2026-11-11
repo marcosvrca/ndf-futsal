@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="NDF Futsal">
+  <defs>
+    <linearGradient id="bg" x1="8" y1="4" x2="56" y2="60" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0b1220"/>
+      <stop offset="1" stop-color="#022c22"/>
+    </linearGradient>
+    <linearGradient id="ball" x1="18" y1="14" x2="46" y2="50" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6ee7b7"/>
+      <stop offset="1" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <circle cx="32" cy="32" r="18" fill="url(#ball)"/>
+  <path fill="#0b1220" d="M32 20.2l4.2 3.05-1.6 4.95h-5.2l-1.6-4.95L32 20.2z"/>
+  <path fill="none" stroke="#0b1220" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M34.6 28.2l6.4 2.1 2.1 6.4-4.3 5.1-6.6-.8M29.4 28.2l-6.4 2.1-2.1 6.4 4.3 5.1 6.6-.8M27.8 42.8h8.4"/>
+  <circle cx="32" cy="32" r="18" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1.5"/>
+</svg>
