@@ -10,10 +10,162 @@
   const valorResumo = document.getElementById("valor-resumo");
   const cpfInput = document.getElementById("cpf");
   const cienteInput = document.getElementById("ciente");
-  const planosAnuais = document.getElementById("planos-anuais");
-  const planosMensais = document.getElementById("planos-mensais");
+  const planoInput = document.getElementById("plano");
+  const planoTrigger = document.getElementById("plano-trigger");
+  const planoTriggerText = document.getElementById("plano-trigger-text");
+  const planoOptions = document.getElementById("plano-options");
+  const contractTrigger = document.getElementById("contract-trigger");
+  const modalPlano = document.getElementById("modal-plano");
+  const modalContrato = document.getElementById("modal-contrato");
 
   const planos = Array.isArray(config.PLANOS) ? config.PLANOS : [];
+  let activeModal = null;
+  let lastFocus = null;
+  let contratoVisualizado = false;
+
+  function syncThemeButtons(theme) {
+    document.querySelectorAll("[data-theme-set]").forEach((btn) => {
+      const active = btn.getAttribute("data-theme-set") === theme;
+      btn.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+  }
+
+  function setTheme(theme, { persist = true, updateUrl = true } = {}) {
+    const next = theme === "light" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    syncThemeButtons(next);
+    if (persist) localStorage.setItem("ndf-theme", next);
+    if (updateUrl) {
+      const url = new URL(window.location.href);
+      url.searchParams.set("theme", next);
+      window.history.replaceState({}, "", url);
+    }
+  }
+
+  const initialTheme =
+    new URLSearchParams(window.location.search).get("theme") ||
+    localStorage.getItem("ndf-theme") ||
+    "dark";
+  setTheme(initialTheme, { persist: true, updateUrl: false });
+
+  document.querySelectorAll("[data-theme-set]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      setTheme(btn.getAttribute("data-theme-set"));
+    });
+  });
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function setButtonLabel(button, label) {
+    if (button) button.textContent = label;
+  }
+
+  function initReveal() {
+    const nodes = document.querySelectorAll(".reveal");
+    if (!nodes.length) return;
+
+    nodes.forEach((node, index) => {
+      if (!node.hasAttribute("data-delay")) {
+        node.setAttribute("data-delay", String(Math.min(index, 3)));
+      }
+    });
+
+    if (reduceMotion || !("IntersectionObserver" in window)) {
+      nodes.forEach((node) => node.classList.add("is-visible"));
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.14, rootMargin: "0px 0px -10% 0px" }
+    );
+
+    nodes.forEach((node) => observer.observe(node));
+  }
+
+  function initCardTilt() {
+    const card = document.querySelector(".card");
+    if (!card || reduceMotion || window.matchMedia("(hover: none)").matches) return;
+
+    card.addEventListener("pointermove", (event) => {
+      const rect = card.getBoundingClientRect();
+      const px = (event.clientX - rect.left) / rect.width;
+      const py = (event.clientY - rect.top) / rect.height;
+      const rotateY = (px - 0.5) * 2.2;
+      const rotateX = (0.5 - py) * 1.6;
+      card.classList.add("is-tilting");
+      card.style.transform = `perspective(1100px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-1px)`;
+    });
+
+    card.addEventListener("pointerleave", () => {
+      card.classList.remove("is-tilting");
+      card.style.transform = "";
+    });
+  }
+
+  function initPhotoParallax() {
+    const rail = document.querySelector(".photo-rail");
+    const form = document.querySelector(".form-rail");
+    if (!rail || !form || reduceMotion) return;
+
+    const desktop = window.matchMedia("(min-width: 921px)");
+    let ticking = false;
+
+    const update = () => {
+      if (!desktop.matches) {
+        rail.style.setProperty("--photo-parallax", "0px");
+        ticking = false;
+        return;
+      }
+
+      const formRect = form.getBoundingClientRect();
+      const start = window.scrollY + formRect.top - 88;
+      const traveled = Math.max(0, window.scrollY - start);
+      const shift = Math.min(traveled * 0.22, 160);
+      rail.style.setProperty("--photo-parallax", `${shift}px`);
+      ticking = false;
+    };
+
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(update);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    desktop.addEventListener("change", onScroll);
+    update();
+  }
+
+  function initAuroraShift() {
+    const blobs = document.querySelectorAll(".aurora__blob");
+    if (!blobs.length || reduceMotion) return;
+
+    window.addEventListener(
+      "pointermove",
+      (event) => {
+        const nx = event.clientX / window.innerWidth - 0.5;
+        const ny = event.clientY / window.innerHeight - 0.5;
+        blobs.forEach((blob, index) => {
+          const strength = (index + 1) * 8;
+          blob.style.translate = `${nx * strength}px ${ny * strength}px`;
+        });
+      },
+      { passive: true }
+    );
+  }
+
+  initReveal();
+  initCardTilt();
+  initPhotoParallax();
+  initAuroraShift();
 
   function formatBRL(value) {
     return Number(value).toLocaleString("pt-BR", {
@@ -27,8 +179,7 @@
   }
 
   function selectedPlano() {
-    const checked = form.querySelector('input[name="plano"]:checked');
-    return checked ? getPlanoById(checked.value) : null;
+    return planoInput ? getPlanoById(planoInput.value) : null;
   }
 
   function selectedUsoImagem() {
@@ -36,8 +187,21 @@
     return checked ? checked.value : "";
   }
 
+  function syncPlanoTrigger(plano) {
+    if (!planoTrigger || !planoTriggerText) return;
+    if (!plano) {
+      planoTriggerText.textContent = "Selecione a parcela";
+      planoTrigger.classList.remove("picker-trigger--filled");
+      return;
+    }
+    planoTriggerText.textContent = plano.label;
+    planoTrigger.classList.add("picker-trigger--filled");
+  }
+
   function updateValor() {
     const plano = selectedPlano();
+    syncPlanoTrigger(plano);
+
     if (!plano) {
       valorResumo.innerHTML = "Valor selecionado: <strong>—</strong>";
       return;
@@ -58,36 +222,163 @@
       ` · total ${formatBRL(plano.valorTotal)}`;
   }
 
+  function openModal(modal) {
+    if (!modal || activeModal === modal) return;
+    if (activeModal) closeModal(activeModal, { restoreFocus: false });
+
+    lastFocus = document.activeElement;
+    activeModal = modal;
+    modal.hidden = false;
+    document.body.style.overflow = "hidden";
+
+    requestAnimationFrame(() => {
+      modal.classList.add("is-open");
+      const focusTarget =
+        modal.querySelector("[data-modal-close].modal__close") ||
+        modal.querySelector("button, [href], input, select, textarea");
+      if (focusTarget) focusTarget.focus();
+    });
+  }
+
+  function closeModal(modal, { restoreFocus = true } = {}) {
+    if (!modal) return;
+
+    modal.classList.remove("is-open");
+
+    const finish = () => {
+      modal.hidden = true;
+      if (activeModal === modal) activeModal = null;
+      if (!activeModal) document.body.style.overflow = "";
+      if (restoreFocus && lastFocus && typeof lastFocus.focus === "function") {
+        lastFocus.focus();
+      }
+    };
+
+    if (reduceMotion) {
+      finish();
+      return;
+    }
+
+    window.setTimeout(finish, 280);
+  }
+
+  function selectPlano(id) {
+    if (!planoInput) return;
+    planoInput.value = id || "";
+    markValidity(planoTrigger, Boolean(id));
+    updateValor();
+    highlightSelectedPlan();
+    closeModal(modalPlano);
+  }
+
+  function highlightSelectedPlan() {
+    if (!planoOptions) return;
+    const current = planoInput ? planoInput.value : "";
+    planoOptions.querySelectorAll(".plan-option").forEach((btn) => {
+      btn.classList.toggle("is-selected", btn.dataset.planoId === current);
+    });
+  }
+
+  function planMeta(plano) {
+    if (plano.tipo === "mensal") return "Mensal";
+    if (plano.parcelas === 1) return "À vista";
+    return `${plano.parcelas}×`;
+  }
+
+  function renderPlanGroup(title, items) {
+    if (!items.length) return "";
+    return `
+      <div class="plan-group">
+        <p class="plan-group__title">${title}</p>
+        ${items
+          .map(
+            (plano) => `
+          <button
+            type="button"
+            class="plan-option"
+            data-plano-id="${plano.id}"
+          >
+            <span>${plano.label}</span>
+            <span class="plan-option__meta">${planMeta(plano)}</span>
+          </button>`
+          )
+          .join("")}
+      </div>`;
+  }
+
   function renderPlanos() {
+    if (!planoOptions) return;
+
     const anuais = planos.filter((p) => p.tipo === "anual");
     const mensais = planos.filter((p) => p.tipo === "mensal");
 
-    planosAnuais.innerHTML = anuais
-      .map(
-        (plano, index) => `
-      <label class="plan">
-        <input type="radio" name="plano" value="${plano.id}" ${index === 0 ? "checked" : ""} required />
-        <span>${plano.label}</span>
-      </label>`
-      )
-      .join("");
+    planoOptions.innerHTML = `
+      <div class="plan-list">
+        ${renderPlanGroup("Pacote anual", anuais)}
+        ${renderPlanGroup("Pagamento mensal", mensais)}
+      </div>
+    `;
 
-    planosMensais.innerHTML = mensais
-      .map(
-        (plano) => `
-      <label class="plan">
-        <input type="radio" name="plano" value="${plano.id}" />
-        <span>${plano.label}</span>
-      </label>`
-      )
-      .join("");
-
-    form.querySelectorAll('input[name="plano"]').forEach((radio) => {
-      radio.addEventListener("change", updateValor);
+    planoOptions.querySelectorAll(".plan-option").forEach((btn) => {
+      btn.addEventListener("click", () => selectPlano(btn.dataset.planoId));
     });
 
+    highlightSelectedPlan();
     updateValor();
   }
+
+  function downloadContrato() {
+    const article = modalContrato
+      ? modalContrato.querySelector(".contract__text")
+      : null;
+    if (!article) return;
+
+    const text = article.innerText.replace(/\n{3,}/g, "\n\n").trim();
+    const blob = new Blob([text + "\n"], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "contrato-escolinha-ndf.txt";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function initModals() {
+    if (planoTrigger && modalPlano) {
+      planoTrigger.addEventListener("click", () => openModal(modalPlano));
+    }
+
+    if (contractTrigger && modalContrato) {
+      contractTrigger.addEventListener("click", () => {
+        contratoVisualizado = true;
+        markValidity(contractTrigger, true);
+        openModal(modalContrato);
+      });
+    }
+
+    const downloadBtn = document.getElementById("download-contrato");
+    if (downloadBtn) {
+      downloadBtn.addEventListener("click", downloadContrato);
+    }
+
+    document.querySelectorAll("[data-modal-close]").forEach((el) => {
+      el.addEventListener("click", () => {
+        const target = document.getElementById(el.getAttribute("data-modal-close"));
+        closeModal(target);
+      });
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && activeModal) {
+        event.preventDefault();
+        closeModal(activeModal);
+      }
+    });
+  }
+
+  initModals();
 
   function maskCPF(value) {
     const digits = value.replace(/\D/g, "").slice(0, 11);
@@ -172,6 +463,8 @@
     markValidity(form.email, form.email.checkValidity());
     const cpfOk = isValidCPF(data.cpf);
     markValidity(form.cpf, cpfOk);
+    markValidity(planoTrigger, Boolean(plano));
+    markValidity(contractTrigger, contratoVisualizado);
     markValidity(cienteInput.closest(".agree"), data.ciente);
     markValidity(
       form.querySelector(".field--imagem"),
@@ -179,7 +472,7 @@
     );
 
     if (!plano) {
-      setStatus("Selecione uma opção de pagamento.");
+      setStatus("Selecione a parcela para continuar.");
       return;
     }
 
@@ -190,6 +483,12 @@
 
     if (!usoImagem) {
       setStatus("Informe se autoriza ou não o uso de imagem e voz.");
+      return;
+    }
+
+    if (!contratoVisualizado) {
+      setStatus("Abra e visualize o contrato em “Ver contrato” antes de enviar.");
+      contractTrigger?.focus();
       return;
     }
 
@@ -231,7 +530,7 @@
     };
 
     submitBtn.disabled = true;
-    submitBtn.textContent = "Enviando...";
+    setButtonLabel(submitBtn, "Enviando...");
 
     try {
       // text/plain evita preflight CORS bloqueado pelo Apps Script
@@ -264,12 +563,15 @@
       setStatus("Não foi possível salvar na planilha. Confira a URL do Apps Script.");
     } finally {
       submitBtn.disabled = false;
-      submitBtn.textContent = "Continuar";
+      setButtonLabel(submitBtn, "Continuar");
     }
   });
 
   resetBtn.addEventListener("click", () => {
     form.reset();
+    if (planoInput) planoInput.value = "";
+    contratoVisualizado = false;
+    markValidity(contractTrigger, true);
     renderPlanos();
     form.hidden = false;
     successPanel.hidden = true;

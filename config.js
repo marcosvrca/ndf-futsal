@@ -32,7 +32,7 @@ window.NDF_CONFIG = {
     { id: "10x", label: "10 Parcelas de R$ 216,00", parcelas: 10, valorParcela: 216, valorTotal: 2160, tipo: "anual" },
     { id: "11x", label: "11 Parcelas de R$ 196,36", parcelas: 11, valorParcela: 196.36, valorTotal: 2160, tipo: "anual" },
     { id: "12x", label: "12 Parcelas de R$ 180,00", parcelas: 12, valorParcela: 180, valorTotal: 2160, tipo: "anual" },
-    { id: "mensal", label: "Parcela de R$ 270,00", parcelas: 1, valorParcela: 270, valorTotal: 270, tipo: "mensal" },
+    { id: "mensal", label: "Parcela de R$ 260,00", parcelas: 1, valorParcela: 260, valorTotal: 260, tipo: "mensal" },
   ],
 
   // Links de pagamento por id do plano (Mercado Pago)
