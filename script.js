@@ -91,7 +91,11 @@
     /* ignore */
   }
 
-  const planos = Array.isArray(config.PLANOS) ? config.PLANOS : [];
+  const planos = Array.isArray(unidade.planos)
+    ? unidade.planos
+    : Array.isArray(config.PLANOS)
+      ? config.PLANOS
+      : [];
   let horarios = Array.isArray(unidade.horarios) ? unidade.horarios : [];
   let activeModal = null;
   let lastFocus = null;

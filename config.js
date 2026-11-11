@@ -20,7 +20,8 @@ window.NDF_CONFIG = {
   // URL da implantação do Apps Script (termina com /exec)
   GOOGLE_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzC7UYY24Q6Bjm-y5nrBw7BnzvSuRytuoi46MNKRf60Q1pAjRBJYx5m8TOYooMBlFvaHw/exec",
 
-  // Pacote anual (parcelado) + opção mensal avulsa — igual para todas as unidades
+  // Pacote anual (parcelado) + opção mensal avulsa — padrão (COOP/Taquaralto e COOP/Fla Palmas).
+  // Unidade com `planos` próprio sobrescreve esta lista (ex.: Monteiro Lobato).
   PLANOS: [
     { id: "1x", label: "Parcela Única de R$ 2.160,00", parcelas: 1, valorParcela: 2160, valorTotal: 2160, tipo: "anual" },
     { id: "2x", label: "2 Parcelas de R$ 1.080,00", parcelas: 2, valorParcela: 1080, valorTotal: 2160, tipo: "anual" },
@@ -127,6 +128,15 @@ window.NDF_CONFIG = {
       slogan: "Esporte e educação no mesmo ritmo",
       local: "Escola Monteiro Lobato",
       diasLabel: "Segunda e Quarta",
+      // Formas permitidas: à vista / 12x (total R$ 1.680) e 5x / 8x / 10x; mensal avulso R$ 195
+      planos: [
+        { id: "1x", label: "Parcela Única de R$ 1.680,00", parcelas: 1, valorParcela: 1680, valorTotal: 1680, tipo: "anual" },
+        { id: "5x", label: "5 Parcelas de R$ 320,00", parcelas: 5, valorParcela: 320, valorTotal: 1600, tipo: "anual" },
+        { id: "8x", label: "8 Parcelas de R$ 200,00", parcelas: 8, valorParcela: 200, valorTotal: 1600, tipo: "anual" },
+        { id: "10x", label: "10 Parcelas de R$ 160,00", parcelas: 10, valorParcela: 160, valorTotal: 1600, tipo: "anual" },
+        { id: "12x", label: "12 Parcelas de R$ 140,00", parcelas: 12, valorParcela: 140, valorTotal: 1680, tipo: "anual" },
+        { id: "mensal", label: "Parcela de R$ 195,00", parcelas: 1, valorParcela: 195, valorTotal: 195, tipo: "mensal" },
+      ],
       horarios: [
         {
           id: "ml-segqua-1730-2019-2017",
