@@ -327,22 +327,55 @@
     updateValor();
   }
 
-  function downloadContrato() {
+  async function downloadContrato() {
     const article = modalContrato
       ? modalContrato.querySelector(".contract__text")
       : null;
+    const downloadBtn = document.getElementById("download-contrato");
     if (!article) return;
 
-    const text = article.innerText.replace(/\n{3,}/g, "\n\n").trim();
-    const blob = new Blob([text + "\n"], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "contrato-escolinha-ndf.txt";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+    if (typeof window.html2pdf !== "function") {
+      setStatus("Não foi possível gerar o PDF agora. Recarregue a página e tente de novo.");
+      return;
+    }
+
+    const wrapper = document.createElement("div");
+    wrapper.setAttribute("aria-hidden", "true");
+    wrapper.style.cssText =
+      "position:fixed;left:-10000px;top:0;width:720px;padding:28px 32px;background:#ffffff;color:#0f172a;font-family:Georgia,'Times New Roman',serif;line-height:1.55;font-size:12px;";
+    const clone = article.cloneNode(true);
+    clone.style.color = "#0f172a";
+    wrapper.appendChild(clone);
+    document.body.appendChild(wrapper);
+
+    if (downloadBtn) {
+      downloadBtn.disabled = true;
+      setButtonLabel(downloadBtn, "Gerando PDF...");
+    }
+
+    try {
+      await window
+        .html2pdf()
+        .set({
+          margin: [12, 12, 12, 12],
+          filename: "contrato-escolinha-ndf.pdf",
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+          pagebreak: { mode: ["css", "legacy"] },
+        })
+        .from(wrapper)
+        .save();
+    } catch (error) {
+      console.error(error);
+      setStatus("Não foi possível baixar o contrato em PDF. Tente novamente.");
+    } finally {
+      wrapper.remove();
+      if (downloadBtn) {
+        downloadBtn.disabled = false;
+        setButtonLabel(downloadBtn, "Baixar contrato");
+      }
+    }
   }
 
   function initModals() {
