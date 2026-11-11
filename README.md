@@ -4,7 +4,7 @@ Landing page estática (HTML/CSS/JS) para cobrança de mensalidade da **COOP/FLA
 
 ## O que tem
 
-- **Home** com 3 unidades: COPP Futsal, Fla Palmas Futsal, Monteiro Lobato Futsal
+- **Home** com 3 unidades: COOP Futsal, Fla Palmas Futsal, Monteiro Lobato Futsal
 - Formulário por unidade (`cadastro.html?unidade=...`): mesmos campos, local/horários da unidade
 - Validação de CPF, contrato em PDF, modal de parcelas
 - Gravação em **Google Sheets** (Apps Script) — **uma aba por unidade**
@@ -28,7 +28,7 @@ Landing page estática (HTML/CSS/JS) para cobrança de mensalidade da **COOP/FLA
 
 | Aba | Função |
 |-----|--------|
-| **COPP Futsal** | Cadastros desta unidade |
+| **COOP Futsal** | Cadastros desta unidade |
 | **Fla Palmas Futsal** | Cadastros desta unidade |
 | **Monteiro Lobato Futsal** | Cadastros desta unidade |
 | **Pagamentos** | Parcelas de todas as unidades (coluna **Unidade**) |

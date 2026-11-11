@@ -8,7 +8,7 @@
  * Depois rode setupPlanilha() uma vez (▶) para criar/atualizar abas e cabeçalhos.
  *
  * Abas por unidade (cadastros):
- *  - COPP Futsal
+ *  - COOP Futsal
  *  - Fla Palmas Futsal
  *  - Monteiro Lobato Futsal
  *
@@ -20,7 +20,7 @@ var ABA_MES = "MesAtual";
 var ABA_HORARIOS = "Horarios";
 
 var UNIDADE_ABAS = [
-  "COPP Futsal",
+  "COOP Futsal",
   "Fla Palmas Futsal",
   "Monteiro Lobato Futsal",
 ];
@@ -149,7 +149,7 @@ function resolveUnidadeAba_(data) {
   if (UNIDADE_ABAS.indexOf(aba) >= 0) return aba;
 
   var id = String(data.unidade_id || "").trim().toLowerCase();
-  if (id === "copp" || id === "copy") return "COPP Futsal";
+  if (id === "coop" || id === "copp" || id === "copy") return "COOP Futsal";
   if (id === "flapalmas" || id === "fla-palmas") return "Fla Palmas Futsal";
   if (id === "monteiro-lobato" || id === "monteiro") return "Monteiro Lobato Futsal";
 
@@ -200,7 +200,7 @@ function ensureHorarios_() {
   sheet.clear();
   sheet.getRange("A1").setValue("Controle de horários por unidade").setFontWeight("bold").setFontSize(14);
   sheet.getRange("A2").setValue(
-    "Cada unidade tem a própria aba de cadastros. Use os filtros nas abas COPP Futsal, Fla Palmas Futsal e Monteiro Lobato Futsal."
+    "Cada unidade tem a própria aba de cadastros. Use os filtros nas abas COOP Futsal, Fla Palmas Futsal e Monteiro Lobato Futsal."
   );
   sheet.getRange("A4").setValue("Abas de cadastro").setFontWeight("bold");
   for (var i = 0; i < UNIDADE_ABAS.length; i++) {

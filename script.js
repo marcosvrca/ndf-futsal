@@ -62,7 +62,10 @@
     return;
   }
 
-  let unidade = unidades[unidadeId] || (unidadeId === "copy" ? unidades.copp : null) || null;
+  let unidade =
+    unidades[unidadeId] ||
+    (unidadeId === "copp" || unidadeId === "copy" ? unidades.coop : null) ||
+    null;
   if (!unidade) {
     console.error("[NDF] Unidade não encontrada no config:", unidadeId, {
       hasConfig: Boolean(window.NDF_CONFIG),
