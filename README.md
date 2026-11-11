@@ -4,7 +4,7 @@ Landing page estática (HTML/CSS/JS) para cobrança de mensalidade da **COOP/FLA
 
 ## O que tem
 
-- **Home** com 3 unidades: COOP Futsal, Fla Palmas Futsal, Monteiro Lobato Futsal
+- **Home** com 3 unidades: COOP/Taquaralto Futsal, COOP/Fla Palmas, Monteiro Lobato Futsal
 - Formulário por unidade (`cadastro.html?unidade=...`): mesmos campos, local/horários da unidade
 - Validação de CPF, contrato em PDF, modal de parcelas
 - Gravação em **Google Sheets** (Apps Script) — **uma aba por unidade**
@@ -28,14 +28,14 @@ Landing page estática (HTML/CSS/JS) para cobrança de mensalidade da **COOP/FLA
 
 | Aba | Função |
 |-----|--------|
-| **COOP Futsal** | Cadastros desta unidade |
-| **Fla Palmas Futsal** | Cadastros desta unidade |
+| **COOP/Taquaralto Futsal** | Cadastros desta unidade |
+| **COOP/Fla Palmas** | Cadastros desta unidade |
 | **Monteiro Lobato Futsal** | Cadastros desta unidade |
 | **Pagamentos** | Parcelas de todas as unidades (coluna **Unidade**) |
 | **MesAtual** | Painel do mês corrente |
 | **Horarios** | Orientação do controle por unidade |
 
-Exemplo: cliente escolhe **Fla Palmas** + **6x** + horário **14:00** → linha na aba **Fla Palmas Futsal** e parcelas em **Pagamentos**.
+Exemplo: cliente escolhe **COOP/Fla Palmas** + **6x** + horário **14:00** → linha na aba **COOP/Fla Palmas** e parcelas em **Pagamentos**.
 
 ### Atualizar a planilha (unidades + horários)
 

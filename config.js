@@ -59,45 +59,37 @@ window.NDF_CONFIG = {
    * Ajuste local/horários quando tiver a grade definitiva.
    */
   UNIDADES: {
-    // id da URL: ?unidade=coop (aliases "copp" e "copy" mantidos no script)
+    // id da URL: ?unidade=coop (aliases "copp", "copy" e "taquaralto" no script)
     coop: {
       id: "coop",
-      nome: "COOP Futsal",
-      aba: "COOP Futsal",
+      nome: "COOP/Taquaralto Futsal",
+      aba: "COOP/Taquaralto Futsal",
       slogan: "Formando atletas com disciplina e alegria",
-      local: "Quadra COOP (a confirmar)",
+      local: "Prisma Taquaralto",
       diasLabel: "Terça e Quinta",
       horarios: [
         {
-          id: "coop-t3-sub8-9",
+          id: "coop-t3-1400-sub10",
           dias: "Terça e Quinta",
-          horario: "14:00 às 15:10",
-          turma: "SUB8 e SUB9",
-          local: "Quadra COOP (a confirmar)",
-          label: "14:00 às 15:10 — SUB8 e SUB9",
-        },
-        {
-          id: "coop-t3-sub10",
-          dias: "Terça e Quinta",
-          horario: "15:10 às 16:20",
+          horario: "14:00 às 15:00",
           turma: "SUB10",
-          local: "Quadra COOP (a confirmar)",
-          label: "15:10 às 16:20 — SUB10",
+          local: "Prisma Taquaralto",
+          label: "14:00 às 15:00 — SUB10",
         },
         {
-          id: "coop-t3-sub11-12",
+          id: "coop-t3-1500-sub12",
           dias: "Terça e Quinta",
-          horario: "16:20 às 17:30",
-          turma: "SUB11 e SUB12",
-          local: "Quadra COOP (a confirmar)",
-          label: "16:20 às 17:30 — SUB11 e SUB12",
+          horario: "15:00 às 16:00",
+          turma: "SUB12",
+          local: "Prisma Taquaralto",
+          label: "15:00 às 16:00 — SUB12",
         },
       ],
     },
     flapalmas: {
       id: "flapalmas",
-      nome: "Fla Palmas Futsal",
-      aba: "Fla Palmas Futsal",
+      nome: "COOP/Fla Palmas",
+      aba: "COOP/Fla Palmas",
       slogan: "Por um esporte que qualifica e unifica",
       local: "906 Sul",
       diasLabel: "Segunda e Quarta",
