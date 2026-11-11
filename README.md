@@ -49,9 +49,59 @@ Exemplo: cliente escolhe **COOP/Fla Palmas** + **6x** + horário **14:00** → l
 
 ## 2) Cobranças (Mercado Pago)
 
-1. Crie links/planos no Mercado Pago (Mensal, Trimestral, Semestral, Anual)
-2. Cole em `config.js` → `PAYMENT_LINKS`
-3. Ajuste `VALOR_MENSAL` se necessário
+O site só redireciona para um **link** do Mercado Pago depois do cadastro. Enquanto o valor for `#` ou `COLE_AQUI_...`, o botão **Ir para o pagamento** fica oculto.
+
+**Total a gerar:** 15 links (5 por unidade × 3 unidades). Cada unidade tem `paymentLinks` próprio em `config.js`.
+
+Passos no painel (vale para todas):
+1. Conta Mercado Pago → **Link de pagamento** (à vista / 5× / 8× / 10×) ou **Planos de Assinatura** (12× mensal, duração 12 cobranças)
+2. Crie com o valor da tabela da unidade
+3. Cole a URL no slot `COLE_AQUI_...` correspondente
+4. Publique — o botão só aparece com URL `https://...`
+
+### COOP/Taquaralto — 5 links (`UNIDADES.coop.paymentLinks`)
+
+| # | Forma | Valor (pacote R$ 2.160) | Placeholder → trocar |
+|---|--------|-------------------------|----------------------|
+| 1 | À vista | R$ 2.160 | `["1x"]` → `COLE_AQUI_TAQUARALTO_LINK_AVISTA` |
+| 2 | 5× | R$ 432 / parcela | `["5x"]` → `COLE_AQUI_TAQUARALTO_LINK_5X` |
+| 3 | 8× | R$ 270 / parcela | `["8x"]` → `COLE_AQUI_TAQUARALTO_LINK_8X` |
+| 4 | 10× | R$ 216 / parcela | `["10x"]` → `COLE_AQUI_TAQUARALTO_LINK_10X` |
+| 5 | 12× | R$ 180 / mês | `["12x"]` → `COLE_AQUI_TAQUARALTO_LINK_12X` |
+
+### COOP/Fla Palmas — 5 links (`UNIDADES.flapalmas.paymentLinks`)
+
+| # | Forma | Valor (pacote R$ 2.160) | Placeholder → trocar |
+|---|--------|-------------------------|----------------------|
+| 1 | À vista | R$ 2.160 | `["1x"]` → `COLE_AQUI_FLAPALMAS_LINK_AVISTA` |
+| 2 | 5× | R$ 432 / parcela | `["5x"]` → `COLE_AQUI_FLAPALMAS_LINK_5X` |
+| 3 | 8× | R$ 270 / parcela | `["8x"]` → `COLE_AQUI_FLAPALMAS_LINK_8X` |
+| 4 | 10× | R$ 216 / parcela | `["10x"]` → `COLE_AQUI_FLAPALMAS_LINK_10X` |
+| 5 | 12× | R$ 180 / mês | `["12x"]` → `COLE_AQUI_FLAPALMAS_LINK_12X` |
+
+### Monteiro Lobato — 5 links (`UNIDADES["monteiro-lobato"].paymentLinks`)
+
+| # | Forma | Valor | Placeholder → trocar |
+|---|--------|-------|----------------------|
+| 1 | À vista | R$ 1.680 | `["1x"]` → `COLE_AQUI_LINK_AVISTA` |
+| 2 | 5× | R$ 320 / parcela | `["5x"]` → `COLE_AQUI_LINK_5X` |
+| 3 | 8× | R$ 200 / parcela | `["8x"]` → `COLE_AQUI_LINK_8X` |
+| 4 | 10× | R$ 160 / parcela | `["10x"]` → `COLE_AQUI_LINK_10X` |
+| 5 | 12× | R$ 140 / mês | `["12x"]` → `COLE_AQUI_LINK_12X` |
+
+Fallback global (se a unidade não tiver `paymentLinks`): `PAYMENT_LINKS` no topo do `config.js`.
+
+### Ideia (não usada) — link mensal Preapproval
+
+Há um slot **documentado apenas** em `paymentLinksIdeia.mensal` em cada unidade. **Não entra no botão de pagar** e o `script.js` **não lê** esse objeto.
+
+| Unidade | Placeholder |
+|---------|-------------|
+| COOP/Taquaralto | `UNIDADES.coop.paymentLinksIdeia.mensal` → `COLE_AQUI_TAQUARALTO_LINK_MENSAL` |
+| COOP/Fla Palmas | `UNIDADES.flapalmas.paymentLinksIdeia.mensal` → `COLE_AQUI_FLAPALMAS_LINK_MENSAL` |
+| Monteiro Lobato | `UNIDADES["monteiro-lobato"].paymentLinksIdeia.mensal` → `COLE_AQUI_LINK_MENSAL` |
+
+Uso futuro (se for ativar): plano de assinatura no Mercado Pago com cobrança mensal recorrente (Preapproval), sem data de término. Por enquanto **ignore** esses slots.
 
 ## 3) Publicar no GitHub Pages
 

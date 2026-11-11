@@ -629,11 +629,44 @@
     input.classList.toggle("is-invalid", !valid);
   }
 
+  /** Link de pagar: unidade.paymentLinks[plano] → PAYMENT_LINKS global → oculto se placeholder. */
+  function isPaymentLinkReady(href) {
+    if (!href || href === "#") return false;
+    const value = String(href).trim();
+    if (!value) return false;
+    if (/^COLE_AQUI_/i.test(value)) return false;
+    if (!/^https?:\/\//i.test(value)) return false;
+    return true;
+  }
+
+  function resolvePaymentLink(plano) {
+    const unitLinks =
+      unidade && unidade.paymentLinks && typeof unidade.paymentLinks === "object"
+        ? unidade.paymentLinks
+        : {};
+    const globalLinks = config.PAYMENT_LINKS || {};
+    const raw = unitLinks[plano.id] || globalLinks[plano.id] || "#";
+    return isPaymentLinkReady(raw) ? String(raw).trim() : "#";
+  }
+
+  function syncPayLink(plano) {
+    if (!payLink) return;
+    const href = resolvePaymentLink(plano);
+    const ready = isPaymentLinkReady(href);
+    payLink.href = ready ? href : "#";
+    payLink.hidden = !ready;
+    payLink.style.display = ready ? "inline-flex" : "none";
+    payLink.setAttribute("data-plano-id", plano.id || "");
+    payLink.setAttribute("aria-hidden", ready ? "false" : "true");
+    if (ready) {
+      payLink.textContent = `Ir para o pagamento (${plano.label})`;
+    } else {
+      payLink.textContent = "Ir para o pagamento";
+    }
+  }
+
   function showSuccess(data, plano) {
-    const links = config.PAYMENT_LINKS || {};
-    const href = links[plano.id] || "#";
-    payLink.href = href;
-    payLink.style.display = href === "#" ? "none" : "inline-flex";
+    syncPayLink(plano);
 
     if (plano.tipo === "mensal") {
       successText.textContent =

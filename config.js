@@ -9,12 +9,14 @@
  *    - Cole a URL da implantação em GOOGLE_SCRIPT_URL
  *    - Rode setupPlanilha() para criar uma aba por unidade
  *
- * 2) Links Mercado Pago (opcional, por plano):
- *    - Crie um link por opção de pagamento
- *    - Cole em PAYMENT_LINKS usando o id do plano
+ * 2) Links Mercado Pago (opcional):
+ *    - Globais: PAYMENT_LINKS (COOP e fallback)
+ *    - Por unidade: UNIDADES[id].paymentLinks (ativos quando URL real)
+ *    - Ideia (não usada): UNIDADES[id].paymentLinksIdeia — script NÃO lê
+ *    - Enquanto o valor for placeholder (COLE_AQUI_...) ou "#", o botão de pagar fica oculto
  *
  * 3) Unidades:
- *    - Ajuste nome, local, slogan e HORARIOS de cada unidade abaixo
+ *    - Ajuste nome, local, slogan, HORARIOS e paymentLinks
  */
 window.NDF_CONFIG = {
   // URL da implantação do Apps Script (termina com /exec)
@@ -38,6 +40,7 @@ window.NDF_CONFIG = {
     { id: "mensal", label: "Parcela de R$ 260,00", parcelas: 1, valorParcela: 260, valorTotal: 260, tipo: "mensal" },
   ],
 
+  // Fallback global (COOP/Taquaralto e COOP/Fla Palmas). "#" = ainda sem link.
   PAYMENT_LINKS: {
     "1x": "#",
     "2x": "#",
@@ -68,6 +71,21 @@ window.NDF_CONFIG = {
       slogan: "Formando atletas com disciplina e alegria",
       local: "Prisma Taquaralto",
       diasLabel: "Terça e Quinta",
+      /**
+       * Links Mercado Pago — COOP/Taquaralto (5 links).
+       * Substitua cada COLE_AQUI_... pela URL real. Placeholders mantêm o botão oculto.
+       */
+      paymentLinks: {
+        "1x": "COLE_AQUI_TAQUARALTO_LINK_AVISTA", // à vista R$ 2.160
+        "5x": "COLE_AQUI_TAQUARALTO_LINK_5X", // 5× R$ 432
+        "8x": "COLE_AQUI_TAQUARALTO_LINK_8X", // 8× R$ 270
+        "10x": "COLE_AQUI_TAQUARALTO_LINK_10X", // 10× R$ 216
+        "12x": "COLE_AQUI_TAQUARALTO_LINK_12X", // 12× R$ 180 (assinatura mensal recomendada)
+      },
+      // IDEIA (não usado): assinatura Preapproval mensal avulsa — script.js NÃO lê este objeto
+      paymentLinksIdeia: {
+        mensal: "COLE_AQUI_TAQUARALTO_LINK_MENSAL",
+      },
       horarios: [
         {
           id: "coop-t3-1400-sub10",
@@ -94,6 +112,21 @@ window.NDF_CONFIG = {
       slogan: "Por um esporte que qualifica e unifica",
       local: "906 Sul",
       diasLabel: "Segunda e Quarta",
+      /**
+       * Links Mercado Pago — COOP/Fla Palmas (5 links).
+       * Substitua cada COLE_AQUI_... pela URL real. Placeholders mantêm o botão oculto.
+       */
+      paymentLinks: {
+        "1x": "COLE_AQUI_FLAPALMAS_LINK_AVISTA", // à vista R$ 2.160
+        "5x": "COLE_AQUI_FLAPALMAS_LINK_5X", // 5× R$ 432
+        "8x": "COLE_AQUI_FLAPALMAS_LINK_8X", // 8× R$ 270
+        "10x": "COLE_AQUI_FLAPALMAS_LINK_10X", // 10× R$ 216
+        "12x": "COLE_AQUI_FLAPALMAS_LINK_12X", // 12× R$ 180 (assinatura mensal recomendada)
+      },
+      // IDEIA (não usado): assinatura Preapproval mensal avulsa — script.js NÃO lê este objeto
+      paymentLinksIdeia: {
+        mensal: "COLE_AQUI_FLAPALMAS_LINK_MENSAL",
+      },
       horarios: [
         {
           id: "fla-segqua-14-sub8-9",
@@ -137,6 +170,24 @@ window.NDF_CONFIG = {
         { id: "12x", label: "12 Parcelas de R$ 140,00", parcelas: 12, valorParcela: 140, valorTotal: 1680, tipo: "anual" },
         { id: "mensal", label: "Parcela de R$ 195,00", parcelas: 1, valorParcela: 195, valorTotal: 195, tipo: "mensal" },
       ],
+      /**
+       * Links Mercado Pago — Monteiro Lobato (5 links).
+       * Substitua cada COLE_AQUI_... pela URL real (link de pagamento ou plano de assinatura).
+       * Enquanto for placeholder, o botão "Ir para o pagamento" não aparece.
+       *
+       * Chaves = id do plano em `planos` acima.
+       */
+      paymentLinks: {
+        "1x": "COLE_AQUI_LINK_AVISTA", // à vista R$ 1.680
+        "5x": "COLE_AQUI_LINK_5X", // 5× R$ 320
+        "8x": "COLE_AQUI_LINK_8X", // 8× R$ 200
+        "10x": "COLE_AQUI_LINK_10X", // 10× R$ 160
+        "12x": "COLE_AQUI_LINK_12X", // 12× R$ 140 (assinatura mensal recomendada)
+      },
+      // IDEIA (não usado): assinatura Preapproval mensal avulsa — script.js NÃO lê este objeto
+      paymentLinksIdeia: {
+        mensal: "COLE_AQUI_LINK_MENSAL",
+      },
       horarios: [
         {
           id: "ml-segqua-1730-2019-2017",

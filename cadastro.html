@@ -189,7 +189,22 @@
           <div class="success" id="success-panel" hidden>
             <h3>Dados recebidos</h3>
             <p id="success-text"></p>
-            <a class="btn btn--pay" id="pay-link" href="#" target="_blank" rel="noopener noreferrer">
+            <!--
+              Link montado em script.js a partir de:
+              UNIDADES[unidade].paymentLinks[plano.id]  (ex.: Monteiro Lobato)
+              ou NDF_CONFIG.PAYMENT_LINKS[plano.id]     (fallback global)
+              Placeholders COLE_AQUI_* / "#" mantêm o botão oculto.
+            -->
+            <a
+              class="btn btn--pay"
+              id="pay-link"
+              href="#"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-plano-id=""
+              aria-hidden="true"
+              hidden
+            >
               Ir para o pagamento
             </a>
             <button type="button" class="btn btn--ghost" id="reset-btn">Enviar outro cadastro</button>
@@ -379,7 +394,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
-  <script src="config.js?v=33"></script>
-  <script src="script.js?v=33"></script>
+  <script src="config.js?v=35"></script>
+  <script src="script.js?v=35"></script>
 </body>
 </html>
