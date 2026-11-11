@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Formulário de mensalidade — COOP/FLAPALMAS FUTSAL" />
-  <title>Formulário de Mensalidade | COOP/FLAPALMAS FUTSAL</title>
+  <meta name="description" content="Escolinhas NDF Futsal — escolha sua unidade e faça a matrícula" />
+  <title>NDF Futsal | Escolha a unidade</title>
   <link rel="icon" href="favicon.svg?v=1" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=21" />
+  <link rel="stylesheet" href="styles.css?v=26" />
   <script>
     (function () {
       var params = new URLSearchParams(window.location.search);
@@ -19,7 +19,7 @@
     })();
   </script>
 </head>
-<body>
+<body class="page-home">
   <div class="page-bg" aria-hidden="true">
     <img class="page-bg__img" src="images/hero.jpeg" alt="" />
     <div class="page-bg__overlay"></div>
@@ -40,331 +40,38 @@
     </div>
   </div>
 
-  <div class="layout">
-    <aside class="brand-rail reveal is-visible" aria-label="Identidade da escolinha">
-      <p class="brand-rail__eyebrow">Minha Quadra</p>
-      <h1 class="brand-rail__title">Domine a <span>quadra</span></h1>
-      <p class="brand-rail__club">COOP/FLAPALMAS FUTSAL</p>
-      <p class="brand-rail__slogan">“Por um esporte que qualifica e unifica”</p>
-      <div class="accent-bar" aria-hidden="true"></div>
-    </aside>
+  <main class="home">
+    <header class="home__hero reveal is-visible">
+      <p class="home__eyebrow">NDF Futsal</p>
+      <h1 class="home__title">Escolha sua <span>unidade</span></h1>
+      <p class="home__lead">Selecione a escolinha para abrir a ficha de mensalidade com local e horários daquela unidade.</p>
+    </header>
 
-    <main class="form-rail" id="formulario">
-      <div class="page reveal is-visible">
-        <section class="card" aria-labelledby="form-title">
-          <header class="card__head">
-            <p class="card__kicker">Matrícula digital</p>
-            <h2 id="form-title">Ficha de mensalidade</h2>
-            <p class="card__lead">Escolha o plano, leia o contrato e envie seus dados.</p>
-          </header>
+    <section class="home__grid" aria-label="Unidades">
+      <a class="unit-card reveal" data-delay="0" href="./cadastro?unidade=copp">
+        <p class="unit-card__tag">Unidade</p>
+        <h2 class="unit-card__name">COPP Futsal</h2>
+        <p class="unit-card__meta">Local e horários próprios</p>
+        <span class="unit-card__cta">Abrir cadastro</span>
+      </a>
 
-          <form id="mensalidade-form" novalidate>
-            <div class="section-label"><span>Dados do responsável</span></div>
+      <a class="unit-card reveal" data-delay="1" href="./cadastro?unidade=flapalmas">
+        <p class="unit-card__tag">Unidade</p>
+        <h2 class="unit-card__name">Fla Palmas Futsal</h2>
+        <p class="unit-card__meta">906 Sul · Segunda e Quarta</p>
+        <span class="unit-card__cta">Abrir cadastro</span>
+      </a>
 
-            <div class="field-row">
-              <div class="field">
-                <label for="nome">Nome <span aria-hidden="true">*</span></label>
-                <input id="nome" name="nome" type="text" autocomplete="given-name" required />
-              </div>
-              <div class="field">
-                <label for="sobrenome">Sobrenome <span aria-hidden="true">*</span></label>
-                <input id="sobrenome" name="sobrenome" type="text" autocomplete="family-name" required />
-              </div>
-            </div>
+      <a class="unit-card reveal" data-delay="2" href="./cadastro?unidade=monteiro-lobato">
+        <p class="unit-card__tag">Unidade</p>
+        <h2 class="unit-card__name">Monteiro Lobato Futsal</h2>
+        <p class="unit-card__meta">Local e horários próprios</p>
+        <span class="unit-card__cta">Abrir cadastro</span>
+      </a>
+    </section>
+  </main>
 
-            <div class="field">
-              <label for="cpf">CPF <span aria-hidden="true">*</span></label>
-              <input
-                id="cpf"
-                name="cpf"
-                type="text"
-                inputmode="numeric"
-                placeholder="000.000.000-00"
-                maxlength="14"
-                required
-              />
-            </div>
-
-            <div class="field">
-              <label for="email">E-mail <span aria-hidden="true">*</span></label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autocomplete="email"
-                placeholder="exemplo@exemplo.com"
-                required
-              />
-            </div>
-
-            <div class="section-label"><span>Local e horário</span></div>
-            <div class="field field--picker">
-              <span class="field__label" id="horario-label">Selecione a turma <span aria-hidden="true">*</span></span>
-              <p class="hint">Treinos na 906 Sul — Segunda e Quarta.</p>
-              <input type="hidden" id="horario" name="horario" value="" required />
-              <button
-                type="button"
-                class="picker-trigger"
-                id="horario-trigger"
-                aria-haspopup="dialog"
-                aria-controls="modal-horario"
-                aria-labelledby="horario-label horario-trigger-text"
-              >
-                <span id="horario-trigger-text">Selecione o horário</span>
-              </button>
-            </div>
-
-            <div class="section-label"><span>Forma de pagamento</span></div>
-            <div class="field field--picker">
-              <span class="field__label" id="plano-label">Selecione a parcela <span aria-hidden="true">*</span></span>
-              <p class="hint">Pacote anual de R$ 2.160,00 ou cobrança mensal avulsa.</p>
-              <input type="hidden" id="plano" name="plano" value="" required />
-              <button
-                type="button"
-                class="picker-trigger"
-                id="plano-trigger"
-                aria-haspopup="dialog"
-                aria-controls="modal-plano"
-                aria-labelledby="plano-label plano-trigger-text"
-              >
-                <span id="plano-trigger-text">Selecione a parcela</span>
-              </button>
-            </div>
-
-            <p class="valor" id="valor-resumo">Valor selecionado: <strong>—</strong></p>
-
-            <section class="contract" aria-labelledby="contract-title">
-              <div class="section-label"><span id="contract-title">Contrato de prestação de serviços</span></div>
-              <p class="hint hint--required">Obrigatório — é necessário visualizar antes de enviar</p>
-
-              <button
-                type="button"
-                class="picker-trigger picker-trigger--link"
-                id="contract-trigger"
-                aria-haspopup="dialog"
-                aria-controls="modal-contrato"
-              >
-                Ver contrato
-              </button>
-
-              <fieldset class="field field--imagem">
-                <legend>Uso de imagem e voz (cláusula 9) <span aria-hidden="true">*</span></legend>
-                <div class="choice-row">
-                  <label class="choice">
-                    <input type="radio" name="uso_imagem" value="Autoriza" required />
-                    <span>Autorizo o uso de imagem e voz</span>
-                  </label>
-                  <label class="choice">
-                    <input type="radio" name="uso_imagem" value="Não autoriza" />
-                    <span>Não autorizo o uso de imagem e voz</span>
-                  </label>
-                </div>
-              </fieldset>
-
-              <label class="agree">
-                <input type="checkbox" id="ciente" name="ciente" required />
-                <span>Li o contrato e estou <strong>ciente</strong> de todos os termos. <span aria-hidden="true">*</span></span>
-              </label>
-            </section>
-
-            <button type="submit" class="btn" id="submit-btn">Continuar</button>
-            <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
-          </form>
-
-          <div class="success" id="success-panel" hidden>
-            <h3>Dados recebidos</h3>
-            <p id="success-text"></p>
-            <a class="btn btn--pay" id="pay-link" href="#" target="_blank" rel="noopener noreferrer">
-              Ir para o pagamento
-            </a>
-            <button type="button" class="btn btn--ghost" id="reset-btn">Enviar outro cadastro</button>
-          </div>
-        </section>
-
-        <footer class="footer">
-          <p>COOP/FLAPALMAS FUTSAL · Mensalidades</p>
-        </footer>
-      </div>
-    </main>
-
-    <aside class="photo-rail reveal" aria-label="Fotos da escolinha">
-      <figure class="photo-rail__item photo-rail__item--1">
-        <img src="images/gallery-2.jpeg" alt="Treino na escolinha" />
-      </figure>
-      <figure class="photo-rail__item photo-rail__item--2">
-        <img src="images/gallery-3.jpeg" alt="Atletas em atividade" />
-      </figure>
-      <figure class="photo-rail__item photo-rail__item--3">
-        <img src="images/gallery-4.jpeg" alt="Ambiente de treino" />
-      </figure>
-      <figure class="photo-rail__item photo-rail__item--4">
-        <img src="images/profmarcos1.jpeg" alt="Professor Marcos" />
-      </figure>
-    </aside>
-  </div>
-
-  <div
-    class="modal"
-    id="modal-horario"
-    hidden
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="modal-horario-title"
-  >
-    <div class="modal__backdrop" data-modal-close="modal-horario"></div>
-    <div class="modal__panel modal__panel--plans" role="document">
-      <header class="modal__header">
-        <div>
-          <p class="modal__eyebrow">Local: 906 Sul</p>
-          <h3 id="modal-horario-title">Selecione o horário</h3>
-        </div>
-        <button type="button" class="modal__close" data-modal-close="modal-horario" aria-label="Fechar">×</button>
-      </header>
-      <div class="modal__body" id="horario-options"></div>
-    </div>
-  </div>
-
-  <div
-    class="modal"
-    id="modal-plano"
-    hidden
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="modal-plano-title"
-  >
-    <div class="modal__backdrop" data-modal-close="modal-plano"></div>
-    <div class="modal__panel modal__panel--plans" role="document">
-      <header class="modal__header">
-        <div>
-          <p class="modal__eyebrow">Forma de pagamento</p>
-          <h3 id="modal-plano-title">Selecione a parcela</h3>
-        </div>
-        <button type="button" class="modal__close" data-modal-close="modal-plano" aria-label="Fechar">×</button>
-      </header>
-      <div class="modal__body" id="plano-options"></div>
-    </div>
-  </div>
-
-  <div
-    class="modal"
-    id="modal-contrato"
-    hidden
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="modal-contrato-title"
-  >
-    <div class="modal__backdrop" data-modal-close="modal-contrato"></div>
-    <div class="modal__panel modal__panel--contract" role="document">
-      <header class="modal__header">
-        <div>
-          <p class="modal__eyebrow">Aceite digital</p>
-          <h3 id="modal-contrato-title">Contrato de prestação de serviços</h3>
-        </div>
-        <button type="button" class="modal__close" data-modal-close="modal-contrato" aria-label="Fechar">×</button>
-      </header>
-      <div class="modal__body modal__body--contract">
-        <article class="contract__text">
-          <h4>CONTRATO DE PRESTAÇÃO DE SERVIÇOS EDUCACIONAIS E ESPORTIVOS</h4>
-
-          <p><strong>CONTRATANTE (Responsável legal pelo aluno):</strong><br />
-            Nome: [NOME DO RESPONSÁVEL]<br />
-            CPF: [CPF] | RG: [RG]<br />
-            Endereço: [ENDEREÇO COMPLETO]<br />
-            Telefone/WhatsApp: [CONTATO] | E-mail: [E-MAIL]
-          </p>
-
-          <p><strong>ALUNO (Participante):</strong><br />
-            Nome: [NOME DO ALUNO]<br />
-            Data de nascimento: [DD/MM/AAAA] | CPF (se tiver): [CPF]
-          </p>
-
-          <p><strong>CONTRATADO:</strong><br />
-            Razão/Nome empresarial: MARCOS ANTONIO FARIAS SOARES 06572007197<br />
-            CNPJ: 42.902.156/0001-08<br />
-            Endereço: R NC 14,06 - QUADRA 19, SETOR BELA VISTA (TAQUARALTO), CEP 77064-704, PALMAS, TOCANTINS.<br />
-            Representante: MARCOS ANTONIO FARIAS SOARES | CPF: 065.720.071-97<br />
-            WhatsApp/E-mail: 63 8115-0191
-          </p>
-
-          <p>As partes acima identificadas firmam o presente contrato, mediante as cláusulas seguintes:</p>
-
-          <h5>1. OBJETO</h5>
-          <p>1.1. O presente contrato tem por objeto a prestação de serviços de treinamento esportivo (futebol), com caráter educacional, recreativo e formativo, ministrado pela ESCOLINHA ao ALUNO, conforme plano de aulas, metodologia e cronograma definidos pela CONTRATADA.</p>
-          <p>1.2. Este contrato não garante profissionalização, aprovação em peneiras, bolsas, resultados em campeonatos ou evolução específica, por depender de fatores individuais.</p>
-
-          <h5>2. LOCAL, DIAS E HORÁRIOS</h5>
-          <p>2.1. As aulas ocorrerão em: [LOCAL/QUADRA/CAMPO].</p>
-          <p>2.2. Dias e horários: [DIAS], das [HORÁRIO INÍCIO] às [HORÁRIO FIM].</p>
-          <p>2.3. Alterações pontuais por clima, manutenção, eventos ou segurança poderão ocorrer, com aviso prévio pelo WhatsApp.</p>
-
-          <h5>3. MATRÍCULA, MENSALIDADE E FORMA DE PAGAMENTO</h5>
-          <p>3.1. Taxa de matrícula: R$ [VALOR] (paga no ato).</p>
-          <p>3.2. Mensalidade: R$ [VALOR], com vencimento todo dia [DIA].</p>
-          <p>3.3. Forma de pagamento: [PIX / dinheiro / cartão / boleto].</p>
-          <p>3.4. Em caso de atraso, incidirá multa de 10%.</p>
-          <p>3.5. A ausência de pagamento por 60 dias poderá gerar suspensão do acesso às aulas até regularização.</p>
-
-          <h5>4. REPOSIÇÃO, FALTAS E AULAS CANCELADAS</h5>
-          <p>4.1. Faltas do aluno por qualquer motivo não geram desconto automático nem devolução, pois o serviço envolve reserva de vaga, equipe e estrutura.</p>
-          <p>4.2. A CONTRATADA poderá, por liberalidade, permitir reposição quando houver vaga e compatibilidade, dentro do mês, sem garantia.</p>
-
-          <h5>5. OBRIGAÇÕES DO RESPONSÁVEL E DO ALUNO</h5>
-          <p>5.1. O RESPONSÁVEL compromete-se a:</p>
-          <ul>
-            <li>informar condições de saúde relevantes (asma, epilepsia, alergias, lesões etc.);</li>
-            <li>garantir que o ALUNO compareça com vestimenta adequada (chuteira/tênis, caneleira se exigida);</li>
-            <li>respeitar regras internas, disciplina e conduta;</li>
-            <li>buscar o ALUNO pontualmente ao final da aula.</li>
-          </ul>
-          <p>5.2. A CONTRATADA poderá advertir e/ou suspender o ALUNO em caso de indisciplina grave, agressões, bullying, desrespeito reiterado ou risco aos demais, sem obrigação de reembolso proporcional se houver descumprimento contratual.</p>
-
-          <h5>6. SAÚDE, ATESTADO E AUTORIZAÇÃO PARA ATIVIDADE FÍSICA</h5>
-          <p>6.1. O RESPONSÁVEL declara que o ALUNO está apto para atividades físicas, responsabilizando-se por manter acompanhamento médico quando necessário.</p>
-          <p>6.2. A CONTRATADA poderá exigir atestado médico a qualquer tempo, especialmente após lesões.</p>
-
-          <h5>7. RESPONSABILIDADE CIVIL E RISCOS DA PRÁTICA ESPORTIVA</h5>
-          <p>7.1. O RESPONSÁVEL está ciente de que a prática esportiva envolve riscos inerentes (quedas, contusões, choques, lesões).</p>
-          <p>7.2. A CONTRATADA se responsabiliza por conduzir as atividades com orientação técnica e medidas razoáveis de segurança, não respondendo por danos decorrentes de: descumprimento de orientações; condição médica não informada; atos de terceiros; acidentes fora do horário da aula ou fora da área de treino.</p>
-          <p>7.3. Em caso de urgência, o RESPONSÁVEL autoriza a CONTRATADA a acionar atendimento médico e/ou conduzir o ALUNO para unidade de saúde, comunicando imediatamente o RESPONSÁVEL, sendo os custos de atendimento de responsabilidade do RESPONSÁVEL (salvo cobertura por seguro contratado, se houver).</p>
-
-          <h5>8. PERTENCES PESSOAIS</h5>
-          <p>8.1. A CONTRATADA não se responsabiliza por perda, extravio ou furto de pertences deixados no local (celular, dinheiro, chuteira, objetos etc.). Recomenda-se não levar itens de valor.</p>
-
-          <h5>9. USO DE IMAGEM E VOZ</h5>
-          <p>9.1. O RESPONSÁVEL autoriza ou não autoriza (conforme opção marcada no formulário) o uso de imagem e voz do ALUNO em fotos e vídeos para divulgação institucional (redes sociais, site, materiais).</p>
-          <p>9.2. A autorização é gratuita, por prazo indeterminado, podendo ser revogada por escrito, com efeitos para novas publicações.</p>
-
-          <h5>10. PROTEÇÃO DE DADOS (LGPD)</h5>
-          <p>10.1. Os dados coletados (nome, contato, documentos, informações de saúde informadas, imagens se autorizadas) serão usados para execução do serviço, comunicação e controle interno, respeitando a legislação vigente.</p>
-          <p>10.2. O RESPONSÁVEL pode solicitar atualização ou exclusão de dados, quando aplicável.</p>
-
-          <h5>11. VIGÊNCIA, CANCELAMENTO E TRANCAMENTO</h5>
-          <p>11.1. Vigência: por prazo indeterminado, iniciando na data do cadastro.</p>
-          <p>11.2. Cancelamento pelo RESPONSÁVEL: mediante aviso por escrito/WhatsApp.</p>
-          <p>11.3. Mensalidades já vencidas ou proporcionais até a data do aviso permanecem devidas.</p>
-          <p>11.4. Trancamento (se permitido): por até 1 mês, mediante solicitação e regra interna.</p>
-
-          <h5>12. DISPOSIÇÕES GERAIS</h5>
-          <p>12.1. A CONTRATADA poderá substituir professores, ajustar metodologia e organizar turmas por faixa etária/nível técnico.</p>
-          <p>12.2. Tolerância a descumprimento não significa renúncia de direito.</p>
-
-          <h5>13. FORO</h5>
-          <p>13.1. Fica eleito o foro da comarca de Palmas, Tocantins, renunciando as partes a qualquer outro, por mais privilegiado que seja.</p>
-
-          <p>E por estarem de acordo, o CONTRATANTE declara ciência eletrônica neste formulário.</p>
-          <p>Palmas, Tocantins</p>
-          <p><strong>CONTRATADO:</strong> MARCOS ANTONIO FARIAS SOARES — CNPJ 42.902.156/0001-08</p>
-        </article>
-      </div>
-      <footer class="modal__footer modal__footer--actions">
-        <button type="button" class="btn btn--ghost" id="download-contrato">Baixar contrato</button>
-        <button type="button" class="btn" data-modal-close="modal-contrato">Fechar contrato</button>
-      </footer>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
-  <script src="config.js?v=21"></script>
-  <script src="script.js?v=21"></script>
+  <script src="config.js?v=26"></script>
+  <script src="home.js?v=26"></script>
 </body>
 </html>

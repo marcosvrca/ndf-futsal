@@ -23,11 +23,98 @@
   const modalHorario = document.getElementById("modal-horario");
   const modalContrato = document.getElementById("modal-contrato");
 
+  const params = new URLSearchParams(window.location.search);
+  let unidadeId = (params.get("unidade") || "").trim().toLowerCase();
+  if (!unidadeId) {
+    try {
+      unidadeId = (sessionStorage.getItem("ndf-unidade") || "").trim().toLowerCase();
+    } catch (_) {
+      unidadeId = "";
+    }
+  }
+  if (!unidadeId && window.__NDF_UNIDADE_ID__) {
+    unidadeId = String(window.__NDF_UNIDADE_ID__).trim().toLowerCase();
+  }
+
+  const unidades = (config && config.UNIDADES) || {};
+
+  function goHome(reason) {
+    const theme = params.get("theme") || localStorage.getItem("ndf-theme") || "dark";
+    console.warn("[NDF] Redirecionando para home:", reason, {
+      unidadeId,
+      search: window.location.search,
+      hasConfig: Boolean(window.NDF_CONFIG),
+      unidadeKeys: Object.keys(unidades),
+    });
+    window.location.replace(`./index.html?theme=${encodeURIComponent(theme)}`);
+  }
+
+  // Restaura ?unidade= na URL se veio só do sessionStorage
+  if (unidadeId && !params.get("unidade")) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("unidade", unidadeId);
+    window.history.replaceState({}, "", url);
+  }
+
+  // Só volta à home se não houver unidade em lugar nenhum.
+  if (!unidadeId) {
+    goHome("parametro unidade ausente");
+    return;
+  }
+
+  let unidade = unidades[unidadeId] || (unidadeId === "copy" ? unidades.copp : null) || null;
+  if (!unidade) {
+    console.error("[NDF] Unidade não encontrada no config:", unidadeId, {
+      hasConfig: Boolean(window.NDF_CONFIG),
+      keys: Object.keys(unidades),
+    });
+    const banner = document.createElement("div");
+    banner.setAttribute("role", "alert");
+    banner.style.cssText =
+      "position:fixed;inset:auto 1rem 1rem;z-index:9999;padding:1rem 1.2rem;border-radius:1rem;background:#7f1d1d;color:#fff;font:600 0.95rem Manrope,sans-serif;box-shadow:0 12px 40px rgba(0,0,0,.35)";
+    banner.innerHTML =
+      `Não foi possível carregar a unidade <strong>${unidadeId}</strong>. Recarregue com Ctrl+F5. ` +
+      `<a href="./index.html" style="color:#fff;text-decoration:underline">Voltar às unidades</a>`;
+    document.addEventListener("DOMContentLoaded", () => document.body.appendChild(banner));
+    if (document.body) document.body.appendChild(banner);
+    return;
+  }
+
+  try {
+    sessionStorage.setItem("ndf-unidade", unidadeId);
+  } catch (_) {
+    /* ignore */
+  }
+
   const planos = Array.isArray(config.PLANOS) ? config.PLANOS : [];
-  const horarios = Array.isArray(config.HORARIOS) ? config.HORARIOS : [];
+  let horarios = Array.isArray(unidade.horarios) ? unidade.horarios : [];
   let activeModal = null;
   let lastFocus = null;
   let contratoVisualizado = false;
+
+  function applyUnidadeContext() {
+    const club = document.getElementById("unit-club");
+    const slogan = document.getElementById("unit-slogan");
+    const hint = document.getElementById("horario-hint");
+    const eyebrow = document.getElementById("modal-horario-eyebrow");
+    const footer = document.getElementById("form-footer");
+    const backHome = document.getElementById("back-home");
+
+    if (club) club.textContent = unidade.nome;
+    if (slogan) slogan.textContent = `“${unidade.slogan}”`;
+    if (hint) {
+      hint.textContent = `Treinos em ${unidade.local} — ${unidade.diasLabel}.`;
+    }
+    if (eyebrow) eyebrow.textContent = `Local: ${unidade.local}`;
+    if (footer) footer.textContent = `${unidade.nome} · Mensalidades`;
+    if (backHome) {
+      const theme = document.documentElement.getAttribute("data-theme") || "dark";
+      backHome.href = `./?theme=${encodeURIComponent(theme)}`;
+    }
+    document.title = `Ficha de mensalidade | ${unidade.nome}`;
+  }
+
+  applyUnidadeContext();
 
   function syncThemeButtons(theme) {
     document.querySelectorAll("[data-theme-set]").forEach((btn) => {
@@ -372,11 +459,14 @@
   function renderHorarios() {
     if (!horarioOptions) return;
 
-    const local = config.LOCAL_TREINO || "906 Sul";
+    horarios = Array.isArray(unidade.horarios) ? unidade.horarios : [];
+    const local = unidade.local || "Local a confirmar";
+    const dias = unidade.diasLabel || "Dias a confirmar";
+
     horarioOptions.innerHTML = `
       <div class="plan-list">
         <div class="plan-group">
-          <p class="plan-group__title">Segunda e Quarta · ${local}</p>
+          <p class="plan-group__title">${dias} · ${local}</p>
           ${horarios
             .map(
               (horario) => `
@@ -538,13 +628,13 @@
 
     if (plano.tipo === "mensal") {
       successText.textContent =
-        `${data.nome}, cadastro salvo (${plano.label}). Foi gerada 1 competência na aba Pagamentos.`;
+        `${data.nome}, cadastro salvo em ${unidade.nome} (${plano.label}). Foi gerada 1 competência na aba Pagamentos.`;
     } else if (plano.parcelas > 1) {
       successText.textContent =
-        `${data.nome}, cadastro salvo (${plano.label}). Foram geradas ${plano.parcelas} competências na aba Pagamentos.`;
+        `${data.nome}, cadastro salvo em ${unidade.nome} (${plano.label}). Foram geradas ${plano.parcelas} competências na aba Pagamentos.`;
     } else {
       successText.textContent =
-        `${data.nome}, cadastro salvo (${plano.label}) na planilha.`;
+        `${data.nome}, cadastro salvo em ${unidade.nome} (${plano.label}).`;
     }
 
     form.hidden = true;
@@ -650,9 +740,12 @@
       status_pagamento: "Pendente",
       contrato_ciente: true,
       uso_imagem: data.uso_imagem,
-      clube: config.CLUBE_NOME || "NDF Futsal",
+      clube: unidade.nome,
+      unidade_id: unidade.id,
+      unidade_nome: unidade.nome,
+      aba: unidade.aba || unidade.nome,
       horario_id: horario.id,
-      local: horario.local || config.LOCAL_TREINO || "906 Sul",
+      local: horario.local || unidade.local || "",
       dias: horario.dias,
       horario: horario.horario,
       turma: horario.turma,

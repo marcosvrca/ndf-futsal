@@ -4,11 +4,11 @@ Landing page estática (HTML/CSS/JS) para cobrança de mensalidade da **COOP/FLA
 
 ## O que tem
 
-- Formulário: nome, sobrenome, CPF, e-mail e periodicidade
-- Validação de CPF
-- Cálculo do valor (base × período)
-- Gravação em **Google Sheets** (Apps Script)
-- Botão de pagamento por periodicidade (Mercado Pago)
+- **Home** com 3 unidades: COPP Futsal, Fla Palmas Futsal, Monteiro Lobato Futsal
+- Formulário por unidade (`cadastro.html?unidade=...`): mesmos campos, local/horários da unidade
+- Validação de CPF, contrato em PDF, modal de parcelas
+- Gravação em **Google Sheets** (Apps Script) — **uma aba por unidade**
+- Botão de pagamento por plano (Mercado Pago)
 
 ## 1) Ligar o Google Sheets (5 minutos)
 
@@ -28,11 +28,22 @@ Landing page estática (HTML/CSS/JS) para cobrança de mensalidade da **COOP/FLA
 
 | Aba | Função |
 |-----|--------|
-| **Cadastros** | 1 linha por inscrição (quem assinou e o período) |
-| **Pagamentos** | 1 linha **por mês coberto** — ex.: Trimestral cria 3 linhas |
-| **MesAtual** | Painel com pendentes/todos do mês corrente |
+| **COPP Futsal** | Cadastros desta unidade |
+| **Fla Palmas Futsal** | Cadastros desta unidade |
+| **Monteiro Lobato Futsal** | Cadastros desta unidade |
+| **Pagamentos** | Parcelas de todas as unidades (coluna **Unidade**) |
+| **MesAtual** | Painel do mês corrente |
+| **Horarios** | Orientação do controle por unidade |
 
-Exemplo: cliente escolhe **Trimestral** → entram Nov, Dez e Jan em **Pagamentos**, status `Pendente`. O responsável só marca `Pago` (dropdown).
+Exemplo: cliente escolhe **Fla Palmas** + **6x** + horário **14:00** → linha na aba **Fla Palmas Futsal** e parcelas em **Pagamentos**.
+
+### Atualizar a planilha (unidades + horários)
+
+1. Abra a planilha → **Extensões → Apps Script**
+2. Substitua o código pelo conteúdo atual de `google-apps-script/Code.gs`
+3. Salve
+4. Rode **`setupPlanilha`** (▶) — cria as 3 abas de unidade e atualiza cabeçalhos
+5. **Implantar → Gerenciar implantações → ✏️ editar → Nova versão → Implantar**
 
 **Ao atualizar o `Code.gs`:** use **Gerenciar implantações → editar → Nova versão** (não crie implantação nova, senão a URL muda).
 

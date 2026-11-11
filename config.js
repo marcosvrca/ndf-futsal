@@ -7,48 +7,20 @@
  *    - Implantar → Nova implantação → App da Web
  *      Executar como: Eu | Quem tem acesso: Qualquer pessoa
  *    - Cole a URL da implantação em GOOGLE_SCRIPT_URL
+ *    - Rode setupPlanilha() para criar uma aba por unidade
  *
  * 2) Links Mercado Pago (opcional, por plano):
  *    - Crie um link por opção de pagamento
  *    - Cole em PAYMENT_LINKS usando o id do plano
+ *
+ * 3) Unidades:
+ *    - Ajuste nome, local, slogan e HORARIOS de cada unidade abaixo
  */
 window.NDF_CONFIG = {
   // URL da implantação do Apps Script (termina com /exec)
   GOOGLE_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzC7UYY24Q6Bjm-y5nrBw7BnzvSuRytuoi46MNKRf60Q1pAjRBJYx5m8TOYooMBlFvaHw/exec",
 
-  CLUBE_NOME: "COOP/FLAPALMAS FUTSAL",
-
-  LOCAL_TREINO: "906 Sul",
-
-  // Turmas / horários (segunda e quarta)
-  HORARIOS: [
-    {
-      id: "segqua-14-sub8-9",
-      dias: "Segunda e Quarta",
-      horario: "14:00 às 15:10",
-      turma: "SUB8 e SUB9",
-      local: "906 Sul",
-      label: "14:00 às 15:10 — SUB8 e SUB9",
-    },
-    {
-      id: "segqua-1510-sub11-12",
-      dias: "Segunda e Quarta",
-      horario: "15:10 às 16:20",
-      turma: "SUB11 e SUB12",
-      local: "906 Sul",
-      label: "15:10 às 16:20 — SUB11 e SUB12",
-    },
-    {
-      id: "segqua-1620-sub10",
-      dias: "Segunda e Quarta",
-      horario: "16:20 às 17:30",
-      turma: "SUB10",
-      local: "906 Sul",
-      label: "16:20 às 17:30 — SUB10",
-    },
-  ],
-
-  // Pacote anual (parcelado) + opção mensal avulsa
+  // Pacote anual (parcelado) + opção mensal avulsa — igual para todas as unidades
   PLANOS: [
     { id: "1x", label: "Parcela Única de R$ 2.160,00", parcelas: 1, valorParcela: 2160, valorTotal: 2160, tipo: "anual" },
     { id: "2x", label: "2 Parcelas de R$ 1.080,00", parcelas: 2, valorParcela: 1080, valorTotal: 2160, tipo: "anual" },
@@ -65,7 +37,6 @@ window.NDF_CONFIG = {
     { id: "mensal", label: "Parcela de R$ 260,00", parcelas: 1, valorParcela: 260, valorTotal: 260, tipo: "mensal" },
   ],
 
-  // Links de pagamento por id do plano (Mercado Pago)
   PAYMENT_LINKS: {
     "1x": "#",
     "2x": "#",
@@ -80,5 +51,116 @@ window.NDF_CONFIG = {
     "11x": "#",
     "12x": "#",
     mensal: "#",
+  },
+
+  /**
+   * Unidades da escolinha.
+   * `aba` = nome exato da aba na planilha Google Sheets.
+   * Ajuste local/horários quando tiver a grade definitiva.
+   */
+  UNIDADES: {
+    // id da URL: ?unidade=copp (alias "copy" mantido abaixo)
+    copp: {
+      id: "copp",
+      nome: "COPP Futsal",
+      aba: "COPP Futsal",
+      slogan: "Formando atletas com disciplina e alegria",
+      local: "Quadra COPP (a confirmar)",
+      diasLabel: "Terça e Quinta",
+      horarios: [
+        {
+          id: "copp-t3-sub8-9",
+          dias: "Terça e Quinta",
+          horario: "14:00 às 15:10",
+          turma: "SUB8 e SUB9",
+          local: "Quadra COPP (a confirmar)",
+          label: "14:00 às 15:10 — SUB8 e SUB9",
+        },
+        {
+          id: "copp-t3-sub10",
+          dias: "Terça e Quinta",
+          horario: "15:10 às 16:20",
+          turma: "SUB10",
+          local: "Quadra COPP (a confirmar)",
+          label: "15:10 às 16:20 — SUB10",
+        },
+        {
+          id: "copp-t3-sub11-12",
+          dias: "Terça e Quinta",
+          horario: "16:20 às 17:30",
+          turma: "SUB11 e SUB12",
+          local: "Quadra COPP (a confirmar)",
+          label: "16:20 às 17:30 — SUB11 e SUB12",
+        },
+      ],
+    },
+    flapalmas: {
+      id: "flapalmas",
+      nome: "Fla Palmas Futsal",
+      aba: "Fla Palmas Futsal",
+      slogan: "Por um esporte que qualifica e unifica",
+      local: "906 Sul",
+      diasLabel: "Segunda e Quarta",
+      horarios: [
+        {
+          id: "fla-segqua-14-sub8-9",
+          dias: "Segunda e Quarta",
+          horario: "14:00 às 15:10",
+          turma: "SUB8 e SUB9",
+          local: "906 Sul",
+          label: "14:00 às 15:10 — SUB8 e SUB9",
+        },
+        {
+          id: "fla-segqua-1510-sub11-12",
+          dias: "Segunda e Quarta",
+          horario: "15:10 às 16:20",
+          turma: "SUB11 e SUB12",
+          local: "906 Sul",
+          label: "15:10 às 16:20 — SUB11 e SUB12",
+        },
+        {
+          id: "fla-segqua-1620-sub10",
+          dias: "Segunda e Quarta",
+          horario: "16:20 às 17:30",
+          turma: "SUB10",
+          local: "906 Sul",
+          label: "16:20 às 17:30 — SUB10",
+        },
+      ],
+    },
+    "monteiro-lobato": {
+      id: "monteiro-lobato",
+      nome: "Monteiro Lobato Futsal",
+      aba: "Monteiro Lobato Futsal",
+      slogan: "Esporte e educação no mesmo ritmo",
+      local: "Escola Monteiro Lobato (a confirmar)",
+      diasLabel: "Segunda e Quarta",
+      horarios: [
+        {
+          id: "ml-segqua-14-sub8-9",
+          dias: "Segunda e Quarta",
+          horario: "14:00 às 15:10",
+          turma: "SUB8 e SUB9",
+          local: "Escola Monteiro Lobato (a confirmar)",
+          label: "14:00 às 15:10 — SUB8 e SUB9",
+        },
+        {
+          id: "ml-segqua-1510-sub10",
+          dias: "Segunda e Quarta",
+          horario: "15:10 às 16:20",
+          turma: "SUB10",
+          local: "Escola Monteiro Lobato (a confirmar)",
+          label: "15:10 às 16:20 — SUB10",
+        },
+        {
+          id: "ml-segqua-1620-sub11-12",
+          dias: "Segunda e Quarta",
+          horario: "16:20 às 17:30",
+          turma: "SUB11 e SUB12",
+          local: "Escola Monteiro Lobato (a confirmar)",
+          label: "16:20 às 17:30 — SUB11 e SUB12",
+        },
+      ],
+    },
   },
 };
