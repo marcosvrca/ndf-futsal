@@ -14,11 +14,17 @@
   const planoTrigger = document.getElementById("plano-trigger");
   const planoTriggerText = document.getElementById("plano-trigger-text");
   const planoOptions = document.getElementById("plano-options");
+  const horarioInput = document.getElementById("horario");
+  const horarioTrigger = document.getElementById("horario-trigger");
+  const horarioTriggerText = document.getElementById("horario-trigger-text");
+  const horarioOptions = document.getElementById("horario-options");
   const contractTrigger = document.getElementById("contract-trigger");
   const modalPlano = document.getElementById("modal-plano");
+  const modalHorario = document.getElementById("modal-horario");
   const modalContrato = document.getElementById("modal-contrato");
 
   const planos = Array.isArray(config.PLANOS) ? config.PLANOS : [];
+  const horarios = Array.isArray(config.HORARIOS) ? config.HORARIOS : [];
   let activeModal = null;
   let lastFocus = null;
   let contratoVisualizado = false;
@@ -178,8 +184,16 @@
     return planos.find((p) => p.id === id) || null;
   }
 
+  function getHorarioById(id) {
+    return horarios.find((h) => h.id === id) || null;
+  }
+
   function selectedPlano() {
     return planoInput ? getPlanoById(planoInput.value) : null;
+  }
+
+  function selectedHorario() {
+    return horarioInput ? getHorarioById(horarioInput.value) : null;
   }
 
   function selectedUsoImagem() {
@@ -196,6 +210,17 @@
     }
     planoTriggerText.textContent = plano.label;
     planoTrigger.classList.add("picker-trigger--filled");
+  }
+
+  function syncHorarioTrigger(horario) {
+    if (!horarioTrigger || !horarioTriggerText) return;
+    if (!horario) {
+      horarioTriggerText.textContent = "Selecione o horário";
+      horarioTrigger.classList.remove("picker-trigger--filled");
+      return;
+    }
+    horarioTriggerText.textContent = `${horario.horario} · ${horario.turma}`;
+    horarioTrigger.classList.add("picker-trigger--filled");
   }
 
   function updateValor() {
@@ -271,11 +296,28 @@
     closeModal(modalPlano);
   }
 
+  function selectHorario(id) {
+    if (!horarioInput) return;
+    horarioInput.value = id || "";
+    markValidity(horarioTrigger, Boolean(id));
+    syncHorarioTrigger(selectedHorario());
+    highlightSelectedHorario();
+    closeModal(modalHorario);
+  }
+
   function highlightSelectedPlan() {
     if (!planoOptions) return;
     const current = planoInput ? planoInput.value : "";
     planoOptions.querySelectorAll(".plan-option").forEach((btn) => {
       btn.classList.toggle("is-selected", btn.dataset.planoId === current);
+    });
+  }
+
+  function highlightSelectedHorario() {
+    if (!horarioOptions) return;
+    const current = horarioInput ? horarioInput.value : "";
+    horarioOptions.querySelectorAll(".plan-option").forEach((btn) => {
+      btn.classList.toggle("is-selected", btn.dataset.horarioId === current);
     });
   }
 
@@ -325,6 +367,42 @@
 
     highlightSelectedPlan();
     updateValor();
+  }
+
+  function renderHorarios() {
+    if (!horarioOptions) return;
+
+    const local = config.LOCAL_TREINO || "906 Sul";
+    horarioOptions.innerHTML = `
+      <div class="plan-list">
+        <div class="plan-group">
+          <p class="plan-group__title">Segunda e Quarta · ${local}</p>
+          ${horarios
+            .map(
+              (horario) => `
+            <button
+              type="button"
+              class="plan-option"
+              data-horario-id="${horario.id}"
+            >
+              <span>
+                <strong>${horario.horario}</strong><br />
+                <small>${horario.turma}</small>
+              </span>
+              <span class="plan-option__meta">${horario.dias}</span>
+            </button>`
+            )
+            .join("")}
+        </div>
+      </div>
+    `;
+
+    horarioOptions.querySelectorAll(".plan-option").forEach((btn) => {
+      btn.addEventListener("click", () => selectHorario(btn.dataset.horarioId));
+    });
+
+    highlightSelectedHorario();
+    syncHorarioTrigger(selectedHorario());
   }
 
   async function downloadContrato() {
@@ -379,6 +457,10 @@
   }
 
   function initModals() {
+    if (horarioTrigger && modalHorario) {
+      horarioTrigger.addEventListener("click", () => openModal(modalHorario));
+    }
+
     if (planoTrigger && modalPlano) {
       planoTrigger.addEventListener("click", () => openModal(modalPlano));
     }
@@ -474,6 +556,7 @@
     cpfInput.value = maskCPF(cpfInput.value);
   });
 
+  renderHorarios();
   renderPlanos();
 
   form.addEventListener("submit", async (event) => {
@@ -481,6 +564,7 @@
     setStatus("");
 
     const plano = selectedPlano();
+    const horario = selectedHorario();
     const usoImagem = selectedUsoImagem();
     const data = {
       nome: form.nome.value.trim(),
@@ -496,6 +580,7 @@
     markValidity(form.email, form.email.checkValidity());
     const cpfOk = isValidCPF(data.cpf);
     markValidity(form.cpf, cpfOk);
+    markValidity(horarioTrigger, Boolean(horario));
     markValidity(planoTrigger, Boolean(plano));
     markValidity(contractTrigger, contratoVisualizado);
     markValidity(cienteInput.closest(".agree"), data.ciente);
@@ -503,6 +588,12 @@
       form.querySelector(".field--imagem"),
       Boolean(usoImagem)
     );
+
+    if (!horario) {
+      setStatus("Selecione o local e o horário da turma para continuar.");
+      horarioTrigger?.focus();
+      return;
+    }
 
     if (!plano) {
       setStatus("Selecione a parcela para continuar.");
@@ -560,6 +651,12 @@
       contrato_ciente: true,
       uso_imagem: data.uso_imagem,
       clube: config.CLUBE_NOME || "NDF Futsal",
+      horario_id: horario.id,
+      local: horario.local || config.LOCAL_TREINO || "906 Sul",
+      dias: horario.dias,
+      horario: horario.horario,
+      turma: horario.turma,
+      horario_label: horario.label,
     };
 
     submitBtn.disabled = true;
@@ -603,8 +700,10 @@
   resetBtn.addEventListener("click", () => {
     form.reset();
     if (planoInput) planoInput.value = "";
+    if (horarioInput) horarioInput.value = "";
     contratoVisualizado = false;
     markValidity(contractTrigger, true);
+    renderHorarios();
     renderPlanos();
     form.hidden = false;
     successPanel.hidden = true;

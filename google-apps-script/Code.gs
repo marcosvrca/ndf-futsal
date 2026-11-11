@@ -76,11 +76,28 @@ function ensureCadastros_() {
       "Contrato ciente",
       "Uso de imagem",
       "Status",
+      "Local",
+      "Dias",
+      "Horário",
+      "Turma",
     ]);
-    sheet.getRange(1, 1, 1, 14).setFontWeight("bold");
+    sheet.getRange(1, 1, 1, 18).setFontWeight("bold");
     sheet.setFrozenRows(1);
+  } else {
+    ensureCadastrosExtraHeaders_(sheet);
   }
   return sheet;
+}
+
+function ensureCadastrosExtraHeaders_(sheet) {
+  var headers = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 18)).getValues()[0];
+  var extras = ["Local", "Dias", "Horário", "Turma"];
+  for (var i = 0; i < extras.length; i++) {
+    var col = 15 + i;
+    if (!headers[col - 1] || String(headers[col - 1]).trim() === "") {
+      sheet.getRange(1, col).setValue(extras[i]).setFontWeight("bold");
+    }
+  }
 }
 
 function ensurePagamentos_() {
@@ -212,6 +229,10 @@ function registrarInscricao_(data) {
     ciente,
     data.uso_imagem || "",
     data.status_pagamento || "Pendente",
+    data.local || "",
+    data.dias || "",
+    data.horario || "",
+    data.turma || "",
   ]);
 
   var rows = [];

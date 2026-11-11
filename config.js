@@ -18,6 +18,36 @@ window.NDF_CONFIG = {
 
   CLUBE_NOME: "COOP/FLAPALMAS FUTSAL",
 
+  LOCAL_TREINO: "906 Sul",
+
+  // Turmas / horários (segunda e quarta)
+  HORARIOS: [
+    {
+      id: "segqua-14-sub8-9",
+      dias: "Segunda e Quarta",
+      horario: "14:00 às 15:10",
+      turma: "SUB8 e SUB9",
+      local: "906 Sul",
+      label: "14:00 às 15:10 — SUB8 e SUB9",
+    },
+    {
+      id: "segqua-1510-sub11-12",
+      dias: "Segunda e Quarta",
+      horario: "15:10 às 16:20",
+      turma: "SUB11 e SUB12",
+      local: "906 Sul",
+      label: "15:10 às 16:20 — SUB11 e SUB12",
+    },
+    {
+      id: "segqua-1620-sub10",
+      dias: "Segunda e Quarta",
+      horario: "16:20 às 17:30",
+      turma: "SUB10",
+      local: "906 Sul",
+      label: "16:20 às 17:30 — SUB10",
+    },
+  ],
+
   // Pacote anual (parcelado) + opção mensal avulsa
   PLANOS: [
     { id: "1x", label: "Parcela Única de R$ 2.160,00", parcelas: 1, valorParcela: 2160, valorTotal: 2160, tipo: "anual" },

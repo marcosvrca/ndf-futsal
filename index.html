@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=19" />
+  <link rel="stylesheet" href="styles.css?v=21" />
   <script>
     (function () {
       var params = new URLSearchParams(window.location.search);
@@ -95,6 +95,23 @@
                 placeholder="exemplo@exemplo.com"
                 required
               />
+            </div>
+
+            <div class="section-label"><span>Local e horário</span></div>
+            <div class="field field--picker">
+              <span class="field__label" id="horario-label">Selecione a turma <span aria-hidden="true">*</span></span>
+              <p class="hint">Treinos na 906 Sul — Segunda e Quarta.</p>
+              <input type="hidden" id="horario" name="horario" value="" required />
+              <button
+                type="button"
+                class="picker-trigger"
+                id="horario-trigger"
+                aria-haspopup="dialog"
+                aria-controls="modal-horario"
+                aria-labelledby="horario-label horario-trigger-text"
+              >
+                <span id="horario-trigger-text">Selecione o horário</span>
+              </button>
             </div>
 
             <div class="section-label"><span>Forma de pagamento</span></div>
@@ -184,6 +201,27 @@
         <img src="images/profmarcos1.jpeg" alt="Professor Marcos" />
       </figure>
     </aside>
+  </div>
+
+  <div
+    class="modal"
+    id="modal-horario"
+    hidden
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-horario-title"
+  >
+    <div class="modal__backdrop" data-modal-close="modal-horario"></div>
+    <div class="modal__panel modal__panel--plans" role="document">
+      <header class="modal__header">
+        <div>
+          <p class="modal__eyebrow">Local: 906 Sul</p>
+          <h3 id="modal-horario-title">Selecione o horário</h3>
+        </div>
+        <button type="button" class="modal__close" data-modal-close="modal-horario" aria-label="Fechar">×</button>
+      </header>
+      <div class="modal__body" id="horario-options"></div>
+    </div>
   </div>
 
   <div
@@ -326,7 +364,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
-  <script src="config.js?v=20"></script>
-  <script src="script.js?v=20"></script>
+  <script src="config.js?v=21"></script>
+  <script src="script.js?v=21"></script>
 </body>
 </html>

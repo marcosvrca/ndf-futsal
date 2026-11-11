@@ -757,6 +757,14 @@ html[data-theme="light"] .brand-rail__club {
   white-space: nowrap;
 }
 
+.plan-option small {
+  display: inline-block;
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
 .valor {
   margin: 0.45rem 0 1rem;
   font-size: 0.95rem;
