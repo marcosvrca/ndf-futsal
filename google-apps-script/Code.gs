@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Cole/atualize este código em: Planilha → Extensões → Apps Script
  *
  * IMPORTANTE ao atualizar:
@@ -18,7 +18,7 @@
  *  - MesAtual / Horarios
  *
  * Após colar: rode setupPlanilha() e (opcional) recarregue a planilha
- * para ver o menu "Futsal em primeira mão".
+ * para ver o menu "TUDO SOBRE FUTSAL EM UM SÓ LUGAR!".
  *
  * Quem tem acesso: Qualquer pessoa | Executar como: Eu
  */
@@ -90,7 +90,7 @@ var CADASTROS_HEADERS = [
   "Contrato PDF",
 ];
 
-var PASTA_CONTRATOS = "Contratos Futsal em primeira mão";
+var PASTA_CONTRATOS = "Contratos TUDO SOBRE FUTSAL EM UM SÓ LUGAR!";
 
 var PAGAMENTOS_HEADERS = [
   "ID cadastro",
@@ -118,7 +118,7 @@ var PAGAMENTOS_HEADERS = [
 function doGet() {
   return json_({
     ok: true,
-    message: "Endpoint Futsal em primeira mão ativo. Use POST para cadastrar.",
+    message: "Endpoint TUDO SOBRE FUTSAL EM UM SÓ LUGAR! ativo. Use POST para cadastrar.",
     unidades: UNIDADE_ABAS,
   });
 }
@@ -153,7 +153,7 @@ function setupPlanilha() {
 /** Menu na planilha: Formatar Pagamentos / Atualizar Resumo. */
 function onOpen() {
   SpreadsheetApp.getUi()
-    .createMenu("Futsal em primeira mão")
+    .createMenu("TUDO SOBRE FUTSAL EM UM SÓ LUGAR!")
     .addItem("Formatar aba Pagamentos", "formatarPagamentosMenu")
     .addItem("Atualizar aba Resumo", "atualizarResumoMenu")
     .addItem("Setup completo (abas + visual)", "setupPlanilha")
@@ -162,12 +162,12 @@ function onOpen() {
 
 function formatarPagamentosMenu() {
   ensurePagamentos_();
-  SpreadsheetApp.getActiveSpreadsheet().toast("Aba Pagamentos formatada.", "Futsal em primeira mão", 5);
+  SpreadsheetApp.getActiveSpreadsheet().toast("Aba Pagamentos formatada.", "TUDO SOBRE FUTSAL EM UM SÓ LUGAR!", 5);
 }
 
 function atualizarResumoMenu() {
   ensureResumo_();
-  SpreadsheetApp.getActiveSpreadsheet().toast("Aba Resumo atualizada.", "Futsal em primeira mão", 5);
+  SpreadsheetApp.getActiveSpreadsheet().toast("Aba Resumo atualizada.", "TUDO SOBRE FUTSAL EM UM SÓ LUGAR!", 5);
 }
 
 function parseBody_(e) {
@@ -361,7 +361,7 @@ function ensureResumo_() {
   sheet.getRange("A1:F1").merge();
   sheet
     .getRange("A1")
-    .setValue("Resumo financeiro — Futsal em primeira mão")
+    .setValue("Resumo financeiro — TUDO SOBRE FUTSAL EM UM SÓ LUGAR!")
     .setFontWeight("bold")
     .setFontSize(18)
     .setFontColor(COR_HEADER_BG);

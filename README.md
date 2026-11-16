@@ -1,6 +1,6 @@
-# Futsal em primeira mão — Formulário de Mensalidade
+﻿# TUDO SOBRE FUTSAL EM UM SÓ LUGAR! — Formulário de Mensalidade
 
-Landing page estática (HTML/CSS/JS) para cobrança de mensalidade das escolinhas **Futsal em primeira mão**, pronta para **GitHub Pages** (grátis).
+Landing page estática (HTML/CSS/JS) para cobrança de mensalidade das escolinhas **TUDO SOBRE FUTSAL EM UM SÓ LUGAR!**, pronta para **GitHub Pages** (grátis).
 
 ## O que tem
 
@@ -12,7 +12,7 @@ Landing page estática (HTML/CSS/JS) para cobrança de mensalidade das escolinha
 
 ## 1) Ligar o Google Sheets (5 minutos)
 
-1. Crie uma planilha em [sheets.google.com](https://sheets.google.com) (ex.: `Futsal em primeira mão — Mensalidades`)
+1. Crie uma planilha em [sheets.google.com](https://sheets.google.com) (ex.: `TUDO SOBRE FUTSAL EM UM SÓ LUGAR! — Mensalidades`)
 2. Menu **Extensões → Apps Script**
 3. Apague o código padrão e cole o conteúdo de `google-apps-script/Code.gs`
 4. Salve o projeto
@@ -144,7 +144,7 @@ Fallback global (se a unidade não tiver `paymentLinks`): `PAYMENT_LINKS` no top
 1. O responsável abre **Ver contrato** e **rola até o final**
 2. **Assina com o dedo/mouse** no quadro de assinatura
 3. Só então libera fechar o modal e marcar o aceite
-4. No submit, o site gera o PDF (com dados + assinatura) e o Apps Script salva no Drive (pasta **Contratos Futsal em primeira mão**), gravando o link na coluna **Contrato PDF**
+4. No submit, o site gera o PDF (com dados + assinatura) e o Apps Script salva no Drive (pasta **Contratos TUDO SOBRE FUTSAL EM UM SÓ LUGAR!**), gravando o link na coluna **Contrato PDF**
 
 Após atualizar o `Code.gs`, rode **`setupPlanilha`** e publique **nova versão** da implantação.
 

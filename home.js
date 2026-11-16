@@ -46,8 +46,13 @@
       }
       url.searchParams.set("theme", theme);
       if (unidade) url.searchParams.set("unidade", unidade);
-      // Usa /cadastro (sem .html) para não perder a query no redirect cleanUrls do serve
-      const path = url.pathname.replace(/cadastro\.html$/i, "cadastro");
+      // Mantém cadastro.html para funcionar no Vercel e no localhost
+      let path = url.pathname;
+      if (/\/cadastro\/?$/i.test(path)) {
+        path = path.replace(/\/cadastro\/?$/i, "/cadastro.html");
+      } else if (!/cadastro\.html$/i.test(path)) {
+        path = path.replace(/\/?$/, "/") + "cadastro.html";
+      }
       window.location.assign(path + "?" + url.searchParams.toString());
     });
   });
