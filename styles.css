@@ -752,7 +752,9 @@ html[data-theme="light"] .home__title {
 }
 
 .field input[type="text"],
-.field input[type="email"] {
+.field input[type="email"],
+.field input[type="tel"],
+.field input[type="date"] {
   width: 100%;
   border: 1px solid var(--input-border);
   background: var(--input-bg);
@@ -762,6 +764,22 @@ html[data-theme="light"] .home__title {
   font: inherit;
   font-size: 0.95rem;
   transition: border-color var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out), background var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
+  color-scheme: dark;
+}
+
+html[data-theme="light"] .field input[type="tel"],
+html[data-theme="light"] .field input[type="date"] {
+  color-scheme: light;
+}
+
+.field input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.75;
+  cursor: pointer;
+  filter: invert(1);
+}
+
+html[data-theme="light"] .field input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: none;
 }
 
 .field input:hover {
@@ -1081,6 +1099,96 @@ html[data-theme="light"] .modal__panel {
 
 .modal__body--contract {
   padding-top: 0.85rem;
+  max-height: min(58vh, 460px);
+}
+
+.modal__footer--contract {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.contract-scroll-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--accent) 85%, #fff);
+  text-align: center;
+}
+
+.contract-scroll-hint.is-done {
+  color: color-mix(in srgb, #3dd68c 70%, var(--text));
+}
+
+.signature-block {
+  margin: 1.4rem 0 1rem;
+  padding: 0.9rem 0 0.2rem;
+  border-top: 1px solid color-mix(in srgb, var(--input-border) 80%, transparent);
+}
+
+.signature-block__title {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+}
+
+.signature-block__name {
+  margin: 0 0 0.65rem;
+  font-size: 0.86rem;
+}
+
+.signature-pad-wrap {
+  position: relative;
+  border: 1px dashed color-mix(in srgb, var(--accent) 55%, var(--input-border));
+  border-radius: 0.85rem;
+  background: #fff;
+  overflow: hidden;
+}
+
+.signature-pad {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 180px;
+  touch-action: none;
+  cursor: crosshair;
+  background: #fff;
+}
+
+.signature-pad.is-signed {
+  /* canvas fica quase invisível; a imagem fica por cima no PDF */
+}
+
+.signature-img {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  margin-top: 0.35rem;
+}
+
+.signature-block__hint {
+  margin: 0.55rem 0 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--text) 75%, transparent);
+}
+
+.signature-block__hint.is-done {
+  color: color-mix(in srgb, #3dd68c 70%, var(--text));
+}
+
+.btn--small {
+  width: auto;
+  min-width: 9.5rem;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.82rem;
+  border-radius: 0.8rem;
+}
+
+.modal__close:disabled,
+#close-contrato:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .modal__footer {
@@ -1146,6 +1254,24 @@ html[data-theme="light"] .modal__panel {
 
 .agree {
   margin: 0.85rem 0 0.2rem;
+}
+
+.agree--locked {
+  opacity: 0.62;
+  cursor: not-allowed;
+}
+
+.agree--locked:hover {
+  transform: none;
+}
+
+.optional {
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+#ciente-hint {
+  margin: 0.35rem 0 0;
 }
 
 .btn {

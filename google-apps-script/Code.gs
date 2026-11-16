@@ -18,7 +18,7 @@
  *  - MesAtual / Horarios
  *
  * Após colar: rode setupPlanilha() e (opcional) recarregue a planilha
- * para ver o menu "NDF Futsal".
+ * para ver o menu "Futsal em primeira mão".
  *
  * Quem tem acesso: Qualquer pessoa | Executar como: Eu
  */
@@ -53,8 +53,9 @@ var MESES_PT = [
  * Cabeçalhos das abas por unidade.
  * Colunas novas ficam no FINAL para não deslocar dados já gravados.
  *
- * Novas (se a planilha ainda não tiver): Telefone | Data de nascimento | Idade |
- * Plano ID | Forma de pagamento
+ * Extras (no final, para não deslocar dados antigos):
+ * Telefone | Data de nascimento | Idade | Plano ID | Forma de pagamento |
+ * Nome do aluno | CPF do aluno | Contrato PDF
  *
  * Rode setupPlanilha() após colar este código para atualizar a linha 1.
  */
@@ -78,13 +79,18 @@ var CADASTROS_HEADERS = [
   "Dias",
   "Horário",
   "Turma",
-  // --- colunas extras (compatíveis com as 3 unidades) ---
+  // --- colunas extras ---
   "Telefone",
   "Data de nascimento",
   "Idade",
   "Plano ID",
   "Forma de pagamento",
+  "Nome do aluno",
+  "CPF do aluno",
+  "Contrato PDF",
 ];
+
+var PASTA_CONTRATOS = "Contratos Futsal em primeira mão";
 
 var PAGAMENTOS_HEADERS = [
   "ID cadastro",
@@ -112,7 +118,7 @@ var PAGAMENTOS_HEADERS = [
 function doGet() {
   return json_({
     ok: true,
-    message: "Endpoint NDF Futsal ativo. Use POST para cadastrar.",
+    message: "Endpoint Futsal em primeira mão ativo. Use POST para cadastrar.",
     unidades: UNIDADE_ABAS,
   });
 }
@@ -147,7 +153,7 @@ function setupPlanilha() {
 /** Menu na planilha: Formatar Pagamentos / Atualizar Resumo. */
 function onOpen() {
   SpreadsheetApp.getUi()
-    .createMenu("NDF Futsal")
+    .createMenu("Futsal em primeira mão")
     .addItem("Formatar aba Pagamentos", "formatarPagamentosMenu")
     .addItem("Atualizar aba Resumo", "atualizarResumoMenu")
     .addItem("Setup completo (abas + visual)", "setupPlanilha")
@@ -156,12 +162,12 @@ function onOpen() {
 
 function formatarPagamentosMenu() {
   ensurePagamentos_();
-  SpreadsheetApp.getActiveSpreadsheet().toast("Aba Pagamentos formatada.", "NDF Futsal", 5);
+  SpreadsheetApp.getActiveSpreadsheet().toast("Aba Pagamentos formatada.", "Futsal em primeira mão", 5);
 }
 
 function atualizarResumoMenu() {
   ensureResumo_();
-  SpreadsheetApp.getActiveSpreadsheet().toast("Aba Resumo atualizada.", "NDF Futsal", 5);
+  SpreadsheetApp.getActiveSpreadsheet().toast("Aba Resumo atualizada.", "Futsal em primeira mão", 5);
 }
 
 function parseBody_(e) {
@@ -327,7 +333,8 @@ function formatCadastroSheet_(sheet) {
   styleHeaderRow_(sheet, width);
   sheet.setFrozenRows(1);
   var widths = [
-    90, 140, 180, 120, 120, 120, 180, 200, 120, 70, 100, 100, 110, 110, 90, 140, 120, 110, 180, 110, 130, 60, 80, 120,
+    90, 140, 180, 120, 120, 120, 180, 200, 120, 70, 100, 100, 110, 110, 90, 140, 120, 110, 180,
+    120, 130, 60, 90, 120, 160, 130, 220,
   ];
   for (var i = 0; i < widths.length; i++) {
     sheet.setColumnWidth(i + 1, widths[i]);
@@ -354,7 +361,7 @@ function ensureResumo_() {
   sheet.getRange("A1:F1").merge();
   sheet
     .getRange("A1")
-    .setValue("Resumo financeiro — NDF Futsal")
+    .setValue("Resumo financeiro — Futsal em primeira mão")
     .setFontWeight("bold")
     .setFontSize(18)
     .setFontColor(COR_HEADER_BG);
@@ -394,9 +401,9 @@ function ensureResumo_() {
   sheet.getRange("A18").setValue("10x");
   sheet.getRange("B18").setFormula('=COUNTIF(Pagamentos!J:J;"Anual 10x")');
   sheet.getRange("C18").setFormula('=IFERROR(SUMIF(Pagamentos!J:J;"Anual 10x";Pagamentos!L:L);0)');
-  sheet.getRange("A19").setValue("12x");
-  sheet.getRange("B19").setFormula('=COUNTIF(Pagamentos!J:J;"Anual 12x")');
-  sheet.getRange("C19").setFormula('=IFERROR(SUMIF(Pagamentos!J:J;"Anual 12x";Pagamentos!L:L);0)');
+  sheet.getRange("A19").setValue("11x");
+  sheet.getRange("B19").setFormula('=COUNTIF(Pagamentos!J:J;"Anual 11x")');
+  sheet.getRange("C19").setFormula('=IFERROR(SUMIF(Pagamentos!J:J;"Anual 11x";Pagamentos!L:L);0)');
   sheet.getRange("A20").setValue("Mensal");
   sheet.getRange("B20").setFormula('=COUNTIF(Pagamentos!J:J;"Mensal")');
   sheet.getRange("C20").setFormula('=IFERROR(SUMIF(Pagamentos!J:J;"Mensal";Pagamentos!L:L);0)');
@@ -562,6 +569,48 @@ function formaPagamento_(data, meses) {
   return meses + "x";
 }
 
+/**
+ * Salva o PDF do contrato (base64) no Google Drive e devolve o link.
+ * Se não vier PDF, retorna string vazia (cadastro segue normalmente).
+ */
+function salvarContratoPdf_(data, cadastroId, unidadeNome) {
+  var b64 = data.contrato_pdf_base64 || data.contrato_pdf || "";
+  if (!b64) return "";
+
+  try {
+    var pasta = getOrCreateFolder_(PASTA_CONTRATOS);
+    var aluno = String(data.aluno_nome || data.nome || "aluno")
+      .replace(/[\\/:*?"<>|]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 60);
+    var nomeArquivo =
+      (cadastroId || "CAD") +
+      " — " +
+      String(unidadeNome || "Unidade") +
+      " — " +
+      aluno +
+      ".pdf";
+    var blob = Utilities.newBlob(
+      Utilities.base64Decode(String(b64)),
+      "application/pdf",
+      nomeArquivo
+    );
+    var file = pasta.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    return file.getUrl();
+  } catch (err) {
+    // Não bloqueia o cadastro se o Drive falhar
+    return "Erro ao salvar PDF: " + String(err);
+  }
+}
+
+function getOrCreateFolder_(nome) {
+  var pastas = DriveApp.getFoldersByName(nome);
+  if (pastas.hasNext()) return pastas.next();
+  return DriveApp.createFolder(nome);
+}
+
 function idadeFromNascimento_(raw) {
   if (!raw) return "";
   var s = String(raw).trim();
@@ -623,10 +672,13 @@ function registrarInscricao_(data) {
   var horario = data.horario || "";
   var turma = data.turma || "";
   var telefone = data.telefone || data.phone || data.celular || "";
-  var nascimento = data.data_nascimento || data.nascimento || data.birthdate || "";
+  var alunoNome = data.aluno_nome || data.nome_aluno || "";
+  var nascimento = data.data_nascimento || data.nascimento || data.aluno_nascimento || data.birthdate || "";
+  var alunoCpf = data.aluno_cpf || data.cpf_aluno || "";
   var idade = data.idade !== undefined && data.idade !== ""
     ? data.idade
     : idadeFromNascimento_(nascimento);
+  var contratoUrl = salvarContratoPdf_(data, id, unidadeNome);
 
   var obsBase = forma === "Mensal"
     ? "Mensalidade do mês (" + planoLabel + ")"
@@ -636,7 +688,7 @@ function registrarInscricao_(data) {
   var obsHorario = [turma, horario, local].filter(Boolean).join(" · ");
   var observacao = obsHorario ? obsBase + " | " + obsHorario : obsBase;
 
-  // Ordem = CADASTROS_HEADERS (19 fixas + 5 extras)
+  // Ordem = CADASTROS_HEADERS
   cadSheet.appendRow([
     id,
     agora,
@@ -662,6 +714,9 @@ function registrarInscricao_(data) {
     idade,
     planoId,
     forma,
+    alunoNome,
+    alunoCpf,
+    contratoUrl,
   ]);
 
   var rows = [];

@@ -1,6 +1,6 @@
-# NDF Futsal — Formulário de Mensalidade
+# Futsal em primeira mão — Formulário de Mensalidade
 
-Landing page estática (HTML/CSS/JS) para cobrança de mensalidade da **COOP/FLAPALMAS FUTSAL**, pronta para **GitHub Pages** (grátis).
+Landing page estática (HTML/CSS/JS) para cobrança de mensalidade das escolinhas **Futsal em primeira mão**, pronta para **GitHub Pages** (grátis).
 
 ## O que tem
 
@@ -12,7 +12,7 @@ Landing page estática (HTML/CSS/JS) para cobrança de mensalidade da **COOP/FLA
 
 ## 1) Ligar o Google Sheets (5 minutos)
 
-1. Crie uma planilha em [sheets.google.com](https://sheets.google.com) (ex.: `NDF Futsal — Mensalidades`)
+1. Crie uma planilha em [sheets.google.com](https://sheets.google.com) (ex.: `Futsal em primeira mão — Mensalidades`)
 2. Menu **Extensões → Apps Script**
 3. Apague o código padrão e cole o conteúdo de `google-apps-script/Code.gs`
 4. Salve o projeto
@@ -35,7 +35,7 @@ Landing page estática (HTML/CSS/JS) para cobrança de mensalidade da **COOP/FLA
 | **MesAtual** | Painel do mês corrente |
 | **Horarios** | Orientação do controle por unidade |
 
-Exemplo: cliente escolhe **COOP/Fla Palmas** + **6x** + horário **14:00** → linha na aba **COOP/Fla Palmas** e parcelas em **Pagamentos**.
+Exemplo: cliente escolhe **COOP/Fla Palmas** + **10x** + horário **14:00** → linha na aba **COOP/Fla Palmas** e parcelas em **Pagamentos**.
 
 ### Atualizar a planilha (unidades + horários)
 
@@ -47,39 +47,79 @@ Exemplo: cliente escolhe **COOP/Fla Palmas** + **6x** + horário **14:00** → l
 
 **Ao atualizar o `Code.gs`:** use **Gerenciar implantações → editar → Nova versão** (não crie implantação nova, senão a URL muda).
 
-## 2) Cobranças (Mercado Pago)
+## 2) Guia: gerar links de pagamento no Mercado Pago
 
-O site só redireciona para um **link** do Mercado Pago depois do cadastro. Enquanto o valor for `#` ou `COLE_AQUI_...`, o botão **Ir para o pagamento** fica oculto.
+O site **não processa cartão**. Depois do cadastro, o botão **Ir para o pagamento** só aparece se existir uma URL real (`https://...`) em `config.js`. Enquanto estiver `#` ou `COLE_AQUI_...`, o botão fica oculto.
 
-**Total a gerar:** 15 links (5 por unidade × 3 unidades). Cada unidade tem `paymentLinks` próprio em `config.js`.
+**Total a gerar:** ~13 links (COOP: 4 cada × 2 + Monteiro: 5).
 
-Passos no painel (vale para todas):
-1. Conta Mercado Pago → **Link de pagamento** (à vista / 5× / 8× / 10×) ou **Planos de Assinatura** (12× mensal, duração 12 cobranças)
-2. Crie com o valor da tabela da unidade
-3. Cole a URL no slot `COLE_AQUI_...` correspondente
-4. Publique — o botão só aparece com URL `https://...`
+### O que criar no Mercado Pago
 
-### COOP Futsal — 5 links (`UNIDADES.coop.paymentLinks`)
+| Forma no formulário | Tipo no Mercado Pago | Por quê |
+|---------------------|----------------------|---------|
+| **1x** (à vista) | **Link de pagamento** | Cobrança única do valor total |
+| **5× / 8× / 10× / 11×** | **Link de pagamento** | Cliente paga o valor da parcela (ou o total parcelado no cartão, conforme você configurar) |
 
-| # | Forma | Valor (pacote R$ 2.160) | Placeholder → trocar |
-|---|--------|-------------------------|----------------------|
-| 1 | À vista | R$ 2.160 | `["1x"]` → `COLE_AQUI_TAQUARALTO_LINK_AVISTA` |
+> Dica: use a **mesma conta Mercado Pago** da escolinha. Nomeie cada link com a unidade + forma (ex.: `COOP — À vista 2000`, `Monteiro — 5x 320`) para não misturar depois.
+
+### Passo a passo — Link de pagamento (1x, 5x, 8x, 10x)
+
+1. Acesse [https://www.mercadopago.com.br](https://www.mercadopago.com.br) e entre na conta
+2. No menu, vá em **Ferramentas** → **Link de pagamento**  
+   (ou busque “Criar link de pagamento”)
+3. Clique em **Criar link** / **Novo link**
+4. Preencha:
+   - **Título:** ex. `COOP Futsal — Parcela única`
+   - **Valor:** use a tabela da unidade abaixo
+   - **Descrição (opcional):** unidade + forma de pagamento
+5. Em opções de pagamento, deixe Pix / cartão conforme a preferência da escolinha
+6. Salve / publique o link
+7. Clique em **Copiar link** (URL começa com `https://mpago.la/...` ou `https://www.mercadopago.com.br/...`)
+8. Cole no `config.js`, no `paymentLinks` da unidade, no lugar do `COLE_AQUI_...`
+
+Repita para cada combinação **unidade × forma**.
+
+### Onde colar no projeto
+
+Arquivo: **`config.js`** → `UNIDADES.<id>.paymentLinks`
+
+Exemplo (COOP Futsal):
+
+```js
+paymentLinks: {
+  "1x": "https://mpago.la/SEU_LINK_AVISTA",
+  "5x": "https://mpago.la/SEU_LINK_5X",
+  "8x": "https://mpago.la/SEU_LINK_8X",
+  "10x": "https://mpago.la/SEU_LINK_10X",
+},
+```
+
+Depois de colar:
+1. Salve o arquivo
+2. Faça commit/push (se for GitHub Pages) **ou** só recarregue o localhost
+3. Teste: cadastre na unidade → escolha o plano → na tela de sucesso deve aparecer **Ir para o pagamento**
+
+### Checklist por unidade
+
+#### COOP Futsal — `UNIDADES.coop.paymentLinks`
+
+| # | Forma | Valor | Placeholder → trocar |
+|---|--------|-------|----------------------|
+| 1 | À vista | R$ 2.000 | `["1x"]` → `COLE_AQUI_TAQUARALTO_LINK_AVISTA` |
 | 2 | 5× | R$ 432 / parcela | `["5x"]` → `COLE_AQUI_TAQUARALTO_LINK_5X` |
 | 3 | 8× | R$ 270 / parcela | `["8x"]` → `COLE_AQUI_TAQUARALTO_LINK_8X` |
-| 4 | 10× | R$ 216 / parcela | `["10x"]` → `COLE_AQUI_TAQUARALTO_LINK_10X` |
-| 5 | 12× | R$ 180 / mês | `["12x"]` → `COLE_AQUI_TAQUARALTO_LINK_12X` |
+| 4 | 10× | R$ 220 / parcela | `["10x"]` → `COLE_AQUI_TAQUARALTO_LINK_10X` |
 
-### COOP/Fla Palmas — 5 links (`UNIDADES.flapalmas.paymentLinks`)
+#### COOP/Fla Palmas — `UNIDADES.flapalmas.paymentLinks`
 
-| # | Forma | Valor (pacote R$ 2.160) | Placeholder → trocar |
-|---|--------|-------------------------|----------------------|
-| 1 | À vista | R$ 2.160 | `["1x"]` → `COLE_AQUI_FLAPALMAS_LINK_AVISTA` |
+| # | Forma | Valor | Placeholder → trocar |
+|---|--------|-------|----------------------|
+| 1 | À vista | R$ 2.000 | `["1x"]` → `COLE_AQUI_FLAPALMAS_LINK_AVISTA` |
 | 2 | 5× | R$ 432 / parcela | `["5x"]` → `COLE_AQUI_FLAPALMAS_LINK_5X` |
 | 3 | 8× | R$ 270 / parcela | `["8x"]` → `COLE_AQUI_FLAPALMAS_LINK_8X` |
-| 4 | 10× | R$ 216 / parcela | `["10x"]` → `COLE_AQUI_FLAPALMAS_LINK_10X` |
-| 5 | 12× | R$ 180 / mês | `["12x"]` → `COLE_AQUI_FLAPALMAS_LINK_12X` |
+| 4 | 10× | R$ 220 / parcela | `["10x"]` → `COLE_AQUI_FLAPALMAS_LINK_10X` |
 
-### Monteiro Lobato — 5 links (`UNIDADES["monteiro-lobato"].paymentLinks`)
+#### Monteiro Lobato — `UNIDADES["monteiro-lobato"].paymentLinks`
 
 | # | Forma | Valor | Placeholder → trocar |
 |---|--------|-------|----------------------|
@@ -87,21 +127,36 @@ Passos no painel (vale para todas):
 | 2 | 5× | R$ 320 / parcela | `["5x"]` → `COLE_AQUI_LINK_5X` |
 | 3 | 8× | R$ 200 / parcela | `["8x"]` → `COLE_AQUI_LINK_8X` |
 | 4 | 10× | R$ 160 / parcela | `["10x"]` → `COLE_AQUI_LINK_10X` |
-| 5 | 12× | R$ 140 / mês | `["12x"]` → `COLE_AQUI_LINK_12X` |
+| 5 | 11× | R$ 150 / parcela | `["11x"]` → `COLE_AQUI_LINK_11X` |
 
 Fallback global (se a unidade não tiver `paymentLinks`): `PAYMENT_LINKS` no topo do `config.js`.
 
-### Ideia (não usada) — link mensal Preapproval
+### Problemas comuns
 
-Há um slot **documentado apenas** em `paymentLinksIdeia.mensal` em cada unidade. **Não entra no botão de pagar** e o `script.js` **não lê** esse objeto.
+| Situação | O que fazer |
+|----------|-------------|
+| Botão de pagar não aparece | URL ainda é placeholder (`COLE_AQUI_...`) ou `#`. Tem que ser `https://...` |
+| Link abre mas valor errado | Confira se colou o link na chave certa (`1x`, `5x`…) da unidade certa |
+| Misturou unidades | Renomeie os links no painel MP e confira o `config.js` |
+
+### Contrato + assinatura no envio
+
+1. O responsável abre **Ver contrato** e **rola até o final**
+2. **Assina com o dedo/mouse** no quadro de assinatura
+3. Só então libera fechar o modal e marcar o aceite
+4. No submit, o site gera o PDF (com dados + assinatura) e o Apps Script salva no Drive (pasta **Contratos Futsal em primeira mão**), gravando o link na coluna **Contrato PDF**
+
+Após atualizar o `Code.gs`, rode **`setupPlanilha`** e publique **nova versão** da implantação.
+
+### Ideia (não usada) — mensal recorrente sem fim
+
+Há um slot só documentado em `paymentLinksIdeia.mensal` (assinatura Preapproval mensal avulsa). **O site não usa** esse campo hoje.
 
 | Unidade | Placeholder |
 |---------|-------------|
-| COOP Futsal | `UNIDADES.coop.paymentLinksIdeia.mensal` → `COLE_AQUI_TAQUARALTO_LINK_MENSAL` |
-| COOP/Fla Palmas | `UNIDADES.flapalmas.paymentLinksIdeia.mensal` → `COLE_AQUI_FLAPALMAS_LINK_MENSAL` |
-| Monteiro Lobato | `UNIDADES["monteiro-lobato"].paymentLinksIdeia.mensal` → `COLE_AQUI_LINK_MENSAL` |
-
-Uso futuro (se for ativar): plano de assinatura no Mercado Pago com cobrança mensal recorrente (Preapproval), sem data de término. Por enquanto **ignore** esses slots.
+| COOP Futsal | `UNIDADES.coop.paymentLinksIdeia.mensal` |
+| COOP/Fla Palmas | `UNIDADES.flapalmas.paymentLinksIdeia.mensal` |
+| Monteiro Lobato | `UNIDADES["monteiro-lobato"].paymentLinksIdeia.mensal` |
 
 ## 3) Publicar no GitHub Pages
 

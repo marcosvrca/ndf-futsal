@@ -9,7 +9,11 @@
   const resetBtn = document.getElementById("reset-btn");
   const valorResumo = document.getElementById("valor-resumo");
   const cpfInput = document.getElementById("cpf");
+  const telefoneInput = document.getElementById("telefone");
+  const alunoCpfInput = document.getElementById("aluno_cpf");
   const cienteInput = document.getElementById("ciente");
+  const cienteHint = document.getElementById("ciente-hint");
+  const agreeWrap = document.getElementById("agree-wrap");
   const planoInput = document.getElementById("plano");
   const planoTrigger = document.getElementById("plano-trigger");
   const planoTriggerText = document.getElementById("plano-trigger-text");
@@ -19,6 +23,14 @@
   const horarioTriggerText = document.getElementById("horario-trigger-text");
   const horarioOptions = document.getElementById("horario-options");
   const contractTrigger = document.getElementById("contract-trigger");
+  const closeContratoBtn = document.getElementById("close-contrato");
+  const closeContratoX = document.getElementById("close-contrato-x");
+  const contratoScroll = document.getElementById("contrato-scroll");
+  const contratoScrollHint = document.getElementById("contrato-scroll-hint");
+  const assinaturaCanvas = document.getElementById("assinatura-canvas");
+  const assinaturaImg = document.getElementById("assinatura-img");
+  const limparAssinaturaBtn = document.getElementById("limpar-assinatura");
+  const assinaturaHint = document.getElementById("assinatura-hint");
   const modalPlano = document.getElementById("modal-plano");
   const modalHorario = document.getElementById("modal-horario");
   const modalContrato = document.getElementById("modal-contrato");
@@ -99,7 +111,12 @@
   let horarios = Array.isArray(unidade.horarios) ? unidade.horarios : [];
   let activeModal = null;
   let lastFocus = null;
-  let contratoVisualizado = false;
+  let contratoLidoAteFim = false;
+  let assinaturaOk = false;
+  let assinaturaDataUrl = "";
+  let signatureCtx = null;
+  let drawing = false;
+  let hasStroke = false;
 
   function applyUnidadeContext() {
     const club = document.getElementById("unit-club");
@@ -343,9 +360,222 @@
       ` · total ${formatBRL(plano.valorTotal)}`;
   }
 
+  function contratoPronto() {
+    return contratoLidoAteFim && assinaturaOk;
+  }
+
+  function syncAssinaturaUi() {
+    const pronto = contratoPronto();
+
+    if (cienteInput) {
+      cienteInput.disabled = !pronto;
+      if (!pronto) cienteInput.checked = false;
+    }
+    if (agreeWrap) {
+      agreeWrap.classList.toggle("agree--locked", !pronto);
+    }
+    if (cienteHint) {
+      if (!contratoLidoAteFim) {
+        cienteHint.textContent = "Abra o contrato e role até o final.";
+      } else if (!assinaturaOk) {
+        cienteHint.textContent = "Assine no final do contrato para liberar o aceite.";
+      } else {
+        cienteHint.textContent = "Contrato lido e assinado — marque o aceite para continuar.";
+      }
+    }
+    if (closeContratoBtn) closeContratoBtn.disabled = !pronto;
+    if (closeContratoX) closeContratoX.disabled = !pronto;
+
+    if (contratoScrollHint) {
+      contratoScrollHint.hidden = false;
+      if (!contratoLidoAteFim) {
+        contratoScrollHint.textContent = "Role até o final do contrato.";
+        contratoScrollHint.classList.remove("is-done");
+      } else if (!assinaturaOk) {
+        contratoScrollHint.textContent = "Agora assine no quadro abaixo.";
+        contratoScrollHint.classList.remove("is-done");
+      } else {
+        contratoScrollHint.textContent = "Assinatura ok — você já pode fechar.";
+        contratoScrollHint.classList.add("is-done");
+      }
+    }
+
+    if (assinaturaHint) {
+      assinaturaHint.textContent = assinaturaOk
+        ? "Assinatura capturada."
+        : "Assine no quadro acima com o dedo ou mouse.";
+      assinaturaHint.classList.toggle("is-done", assinaturaOk);
+    }
+
+    if (contractTrigger) {
+      markValidity(contractTrigger, pronto);
+      contractTrigger.textContent = pronto
+        ? "Contrato assinado — ver novamente"
+        : "Ver contrato";
+    }
+  }
+
+  function setContratoLido(liberado) {
+    contratoLidoAteFim = Boolean(liberado);
+    syncAssinaturaUi();
+  }
+
+  function setAssinaturaOk(ok, dataUrl) {
+    assinaturaOk = Boolean(ok);
+    assinaturaDataUrl = ok && dataUrl ? dataUrl : "";
+    // A imagem fica só para o PDF; na tela o responsável assina no canvas
+    if (assinaturaImg) {
+      if (assinaturaOk && assinaturaDataUrl) {
+        assinaturaImg.src = assinaturaDataUrl;
+      } else {
+        assinaturaImg.removeAttribute("src");
+      }
+      assinaturaImg.hidden = true;
+    }
+    if (assinaturaCanvas) {
+      assinaturaCanvas.classList.toggle("is-signed", assinaturaOk);
+    }
+    syncAssinaturaUi();
+  }
+
+  function resetAssinatura() {
+    hasStroke = false;
+    drawing = false;
+    if (signatureCtx && assinaturaCanvas) {
+      signatureCtx.clearRect(0, 0, assinaturaCanvas.width, assinaturaCanvas.height);
+      signatureCtx.fillStyle = "#ffffff";
+      signatureCtx.fillRect(0, 0, assinaturaCanvas.width, assinaturaCanvas.height);
+    }
+    setAssinaturaOk(false, "");
+  }
+
+  function captureAssinatura() {
+    if (!assinaturaCanvas || !hasStroke) {
+      setAssinaturaOk(false, "");
+      return;
+    }
+    setAssinaturaOk(true, assinaturaCanvas.toDataURL("image/png"));
+  }
+
+  function initSignaturePad() {
+    if (!assinaturaCanvas) return;
+    signatureCtx = assinaturaCanvas.getContext("2d");
+    signatureCtx.lineWidth = 2.4;
+    signatureCtx.lineCap = "round";
+    signatureCtx.lineJoin = "round";
+    signatureCtx.strokeStyle = "#0f172a";
+    signatureCtx.fillStyle = "#ffffff";
+    signatureCtx.fillRect(0, 0, assinaturaCanvas.width, assinaturaCanvas.height);
+
+    const pointFromEvent = (event) => {
+      const rect = assinaturaCanvas.getBoundingClientRect();
+      const source = event.touches && event.touches[0] ? event.touches[0] : event;
+      const scaleX = assinaturaCanvas.width / rect.width;
+      const scaleY = assinaturaCanvas.height / rect.height;
+      return {
+        x: (source.clientX - rect.left) * scaleX,
+        y: (source.clientY - rect.top) * scaleY,
+      };
+    };
+
+    const startDraw = (event) => {
+      event.preventDefault();
+      drawing = true;
+      const point = pointFromEvent(event);
+      signatureCtx.beginPath();
+      signatureCtx.moveTo(point.x, point.y);
+    };
+
+    const moveDraw = (event) => {
+      if (!drawing) return;
+      event.preventDefault();
+      const point = pointFromEvent(event);
+      signatureCtx.lineTo(point.x, point.y);
+      signatureCtx.stroke();
+      hasStroke = true;
+    };
+
+    const endDraw = (event) => {
+      if (!drawing) return;
+      event.preventDefault();
+      drawing = false;
+      if (hasStroke) captureAssinatura();
+    };
+
+    assinaturaCanvas.addEventListener("mousedown", startDraw);
+    assinaturaCanvas.addEventListener("mousemove", moveDraw);
+    window.addEventListener("mouseup", endDraw);
+    assinaturaCanvas.addEventListener("touchstart", startDraw, { passive: false });
+    assinaturaCanvas.addEventListener("touchmove", moveDraw, { passive: false });
+    assinaturaCanvas.addEventListener("touchend", endDraw);
+    assinaturaCanvas.addEventListener("touchcancel", endDraw);
+
+    if (limparAssinaturaBtn) {
+      limparAssinaturaBtn.addEventListener("click", () => {
+        resetAssinatura();
+        setStatus("Assinatura limpa. Assine novamente para continuar.");
+      });
+    }
+  }
+
+  function formatDateBR(isoDate) {
+    if (!isoDate) return "";
+    const match = String(isoDate).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!match) return String(isoDate);
+    return `${match[3]}/${match[2]}/${match[1]}`;
+  }
+
+  function fillContractPlaceholders() {
+    const article = document.getElementById("contract-article");
+    if (!article) return;
+
+    const horario = selectedHorario();
+    const plano = selectedPlano();
+    const hoje = new Date();
+    const dataHoje = `${String(hoje.getDate()).padStart(2, "0")}/${String(
+      hoje.getMonth() + 1
+    ).padStart(2, "0")}/${hoje.getFullYear()}`;
+    const values = {
+      responsavel_nome: [form.nome?.value, form.sobrenome?.value]
+        .map((v) => (v || "").trim())
+        .filter(Boolean)
+        .join(" ") || "[NOME DO RESPONSÁVEL]",
+      responsavel_cpf: (form.cpf?.value || "").trim() || "[CPF]",
+      responsavel_telefone: (form.telefone?.value || "").trim() || "[CONTATO]",
+      responsavel_email: (form.email?.value || "").trim() || "[E-MAIL]",
+      aluno_nome: (form.aluno_nome?.value || "").trim() || "[NOME DO ALUNO]",
+      aluno_nascimento: formatDateBR(form.aluno_nascimento?.value) || "[DD/MM/AAAA]",
+      aluno_cpf: (form.aluno_cpf?.value || "").trim() || "—",
+      local: (horario && (horario.local || unidade.local)) || unidade.local || "[LOCAL]",
+      dias_horario: horario
+        ? `${horario.dias}, ${horario.horario}${horario.turma ? ` — ${horario.turma}` : ""}`
+        : "[DIAS / HORÁRIO]",
+      plano: plano ? plano.label : "[PLANO]",
+      data_assinatura: dataHoje,
+    };
+
+    article.querySelectorAll("[data-fill]").forEach((node) => {
+      const key = node.getAttribute("data-fill");
+      if (key && values[key] !== undefined) node.textContent = values[key];
+    });
+
+    if (assinaturaImg && assinaturaDataUrl) {
+      assinaturaImg.src = assinaturaDataUrl;
+    }
+  }
+
+  function checkContratoScrollEnd() {
+    if (!contratoScroll || contratoLidoAteFim) return;
+    const remaining =
+      contratoScroll.scrollHeight - contratoScroll.scrollTop - contratoScroll.clientHeight;
+    if (remaining <= 32) {
+      setContratoLido(true);
+    }
+  }
+
   function openModal(modal) {
     if (!modal || activeModal === modal) return;
-    if (activeModal) closeModal(activeModal, { restoreFocus: false });
+    if (activeModal) closeModal(activeModal, { restoreFocus: false, force: true });
 
     lastFocus = document.activeElement;
     activeModal = modal;
@@ -355,14 +585,34 @@
     requestAnimationFrame(() => {
       modal.classList.add("is-open");
       const focusTarget =
-        modal.querySelector("[data-modal-close].modal__close") ||
-        modal.querySelector("button, [href], input, select, textarea");
+        modal.querySelector("[data-modal-close].modal__close:not([disabled])") ||
+        modal.querySelector("button:not([disabled]), [href], input, select, textarea");
       if (focusTarget) focusTarget.focus();
+      if (modal === modalContrato) {
+        fillContractPlaceholders();
+        if (contratoScroll) {
+          contratoScroll.scrollTop = 0;
+          requestAnimationFrame(checkContratoScrollEnd);
+        }
+      }
     });
   }
 
-  function closeModal(modal, { restoreFocus = true } = {}) {
+  function closeModal(modal, { restoreFocus = true, force = false } = {}) {
     if (!modal) return;
+
+    if (modal === modalContrato && !contratoPronto() && !force) {
+      if (!contratoLidoAteFim) {
+        setStatus("Role o contrato até o final para poder fechar.");
+      } else if (!assinaturaOk) {
+        setStatus("Assine o contrato no final da página para poder fechar.");
+      }
+      if (contratoScrollHint) {
+        contratoScrollHint.hidden = false;
+        contratoScrollHint.classList.remove("is-done");
+      }
+      return;
+    }
 
     modal.classList.remove("is-open");
 
@@ -504,16 +754,16 @@
     syncHorarioTrigger(selectedHorario());
   }
 
-  async function downloadContrato() {
+  function buildContratoPdfWorker() {
     const article = modalContrato
       ? modalContrato.querySelector(".contract__text")
       : null;
-    const downloadBtn = document.getElementById("download-contrato");
-    if (!article) return;
+    if (!article || typeof window.html2pdf !== "function") return null;
 
-    if (typeof window.html2pdf !== "function") {
-      setStatus("Não foi possível gerar o PDF agora. Recarregue a página e tente de novo.");
-      return;
+    fillContractPlaceholders();
+    if (assinaturaOk && assinaturaDataUrl && assinaturaImg) {
+      assinaturaImg.src = assinaturaDataUrl;
+      assinaturaImg.hidden = false;
     }
 
     const wrapper = document.createElement("div");
@@ -522,8 +772,50 @@
       "position:fixed;left:-10000px;top:0;width:720px;padding:28px 32px;background:#ffffff;color:#0f172a;font-family:Georgia,'Times New Roman',serif;line-height:1.55;font-size:12px;";
     const clone = article.cloneNode(true);
     clone.style.color = "#0f172a";
+
+    // No PDF: mostra a imagem da assinatura e remove canvas/botões
+    const cloneCanvas = clone.querySelector("#assinatura-canvas");
+    if (cloneCanvas) cloneCanvas.remove();
+    const cloneImg = clone.querySelector("#assinatura-img");
+    if (cloneImg && assinaturaDataUrl) {
+      cloneImg.src = assinaturaDataUrl;
+      cloneImg.hidden = false;
+      cloneImg.style.display = "block";
+      cloneImg.style.width = "100%";
+      cloneImg.style.maxWidth = "420px";
+      cloneImg.style.height = "auto";
+      cloneImg.style.borderBottom = "1px solid #94a3b8";
+    }
+    const cloneClear = clone.querySelector("#limpar-assinatura");
+    if (cloneClear) cloneClear.remove();
+    const cloneHint = clone.querySelector("#assinatura-hint");
+    if (cloneHint) cloneHint.remove();
+
     wrapper.appendChild(clone);
     document.body.appendChild(wrapper);
+
+    const worker = window
+      .html2pdf()
+      .set({
+        margin: [12, 12, 12, 12],
+        filename: "contrato-escolinha-futsal.pdf",
+        image: { type: "jpeg", quality: 0.95 },
+        html2canvas: { scale: 1.6, useCORS: true, backgroundColor: "#ffffff" },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        pagebreak: { mode: ["css", "legacy"] },
+      })
+      .from(wrapper);
+
+    return { worker, wrapper };
+  }
+
+  async function downloadContrato() {
+    const downloadBtn = document.getElementById("download-contrato");
+    const built = buildContratoPdfWorker();
+    if (!built) {
+      setStatus("Não foi possível gerar o PDF agora. Recarregue a página e tente de novo.");
+      return;
+    }
 
     if (downloadBtn) {
       downloadBtn.disabled = true;
@@ -531,27 +823,32 @@
     }
 
     try {
-      await window
-        .html2pdf()
-        .set({
-          margin: [12, 12, 12, 12],
-          filename: "contrato-escolinha-ndf.pdf",
-          image: { type: "jpeg", quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
-          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-          pagebreak: { mode: ["css", "legacy"] },
-        })
-        .from(wrapper)
-        .save();
+      await built.worker.save();
     } catch (error) {
       console.error(error);
       setStatus("Não foi possível baixar o contrato em PDF. Tente novamente.");
     } finally {
-      wrapper.remove();
+      built.wrapper.remove();
       if (downloadBtn) {
         downloadBtn.disabled = false;
         setButtonLabel(downloadBtn, "Baixar contrato");
       }
+    }
+  }
+
+  /** Gera PDF do contrato preenchido e devolve base64 (sem prefixo data:). */
+  async function generateContratoPdfBase64() {
+    const built = buildContratoPdfWorker();
+    if (!built) return "";
+    try {
+      const dataUri = await built.worker.outputPdf("datauristring");
+      const comma = String(dataUri).indexOf(",");
+      return comma >= 0 ? String(dataUri).slice(comma + 1) : String(dataUri);
+    } catch (error) {
+      console.error(error);
+      return "";
+    } finally {
+      built.wrapper.remove();
     }
   }
 
@@ -565,11 +862,11 @@
     }
 
     if (contractTrigger && modalContrato) {
-      contractTrigger.addEventListener("click", () => {
-        contratoVisualizado = true;
-        markValidity(contractTrigger, true);
-        openModal(modalContrato);
-      });
+      contractTrigger.addEventListener("click", () => openModal(modalContrato));
+    }
+
+    if (contratoScroll) {
+      contratoScroll.addEventListener("scroll", checkContratoScrollEnd, { passive: true });
     }
 
     const downloadBtn = document.getElementById("download-contrato");
@@ -578,8 +875,31 @@
     }
 
     document.querySelectorAll("[data-modal-close]").forEach((el) => {
-      el.addEventListener("click", () => {
-        const target = document.getElementById(el.getAttribute("data-modal-close"));
+      el.addEventListener("click", (event) => {
+        const targetId = el.getAttribute("data-modal-close");
+        const target = document.getElementById(targetId);
+        if (target === modalContrato && el.hasAttribute("disabled")) {
+          event.preventDefault();
+          setStatus(
+            !contratoLidoAteFim
+              ? "Role o contrato até o final para poder fechar."
+              : "Assine o contrato para poder fechar."
+          );
+          return;
+        }
+        if (
+          target === modalContrato &&
+          el.classList.contains("modal__backdrop") &&
+          !contratoPronto()
+        ) {
+          event.preventDefault();
+          setStatus(
+            !contratoLidoAteFim
+              ? "Role o contrato até o final para poder fechar."
+              : "Assine o contrato para poder fechar."
+          );
+          return;
+        }
         closeModal(target);
       });
     });
@@ -587,12 +907,23 @@
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && activeModal) {
         event.preventDefault();
+        if (activeModal === modalContrato && !contratoPronto()) {
+          setStatus(
+            !contratoLidoAteFim
+              ? "Role o contrato até o final para poder fechar."
+              : "Assine o contrato para poder fechar."
+          );
+          return;
+        }
         closeModal(activeModal);
       }
     });
   }
 
+  initSignaturePad();
   initModals();
+  setContratoLido(false);
+  setAssinaturaOk(false, "");
 
   function maskCPF(value) {
     const digits = value.replace(/\D/g, "").slice(0, 11);
@@ -684,9 +1015,40 @@
     setStatus("");
   }
 
-  cpfInput.addEventListener("input", () => {
-    cpfInput.value = maskCPF(cpfInput.value);
-  });
+  function maskPhone(value) {
+    const digits = value.replace(/\D/g, "").slice(0, 11);
+    if (digits.length <= 10) {
+      return digits
+        .replace(/(\d{2})(\d)/, "($1) $2")
+        .replace(/(\d{4})(\d)/, "$1-$2");
+    }
+    return digits
+      .replace(/(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{5})(\d)/, "$1-$2");
+  }
+
+  function isValidPhone(value) {
+    const digits = String(value || "").replace(/\D/g, "");
+    return digits.length >= 10 && digits.length <= 11;
+  }
+
+  if (cpfInput) {
+    cpfInput.addEventListener("input", () => {
+      cpfInput.value = maskCPF(cpfInput.value);
+    });
+  }
+
+  if (alunoCpfInput) {
+    alunoCpfInput.addEventListener("input", () => {
+      alunoCpfInput.value = maskCPF(alunoCpfInput.value);
+    });
+  }
+
+  if (telefoneInput) {
+    telefoneInput.addEventListener("input", () => {
+      telefoneInput.value = maskPhone(telefoneInput.value);
+    });
+  }
 
   renderHorarios();
   renderPlanos();
@@ -698,11 +1060,16 @@
     const plano = selectedPlano();
     const horario = selectedHorario();
     const usoImagem = selectedUsoImagem();
+    const alunoCpfRaw = (form.aluno_cpf?.value || "").trim();
     const data = {
       nome: form.nome.value.trim(),
       sobrenome: form.sobrenome.value.trim(),
       cpf: form.cpf.value.trim(),
+      telefone: (form.telefone?.value || "").trim(),
       email: form.email.value.trim(),
+      aluno_nome: (form.aluno_nome?.value || "").trim(),
+      aluno_nascimento: (form.aluno_nascimento?.value || "").trim(),
+      aluno_cpf: alunoCpfRaw,
       ciente: Boolean(cienteInput.checked),
       uso_imagem: usoImagem,
     };
@@ -712,9 +1079,15 @@
     markValidity(form.email, form.email.checkValidity());
     const cpfOk = isValidCPF(data.cpf);
     markValidity(form.cpf, cpfOk);
+    const telefoneOk = isValidPhone(data.telefone);
+    markValidity(form.telefone, telefoneOk);
+    markValidity(form.aluno_nome, Boolean(data.aluno_nome));
+    markValidity(form.aluno_nascimento, Boolean(data.aluno_nascimento));
+    const alunoCpfOk = !alunoCpfRaw || isValidCPF(alunoCpfRaw);
+    markValidity(form.aluno_cpf, alunoCpfOk);
     markValidity(horarioTrigger, Boolean(horario));
     markValidity(planoTrigger, Boolean(plano));
-    markValidity(contractTrigger, contratoVisualizado);
+    markValidity(contractTrigger, contratoPronto());
     markValidity(cienteInput.closest(".agree"), data.ciente);
     markValidity(
       form.querySelector(".field--imagem"),
@@ -732,8 +1105,20 @@
       return;
     }
 
-    if (!data.nome || !data.sobrenome || !form.email.checkValidity() || !cpfOk) {
-      setStatus(cpfOk ? "Preencha os campos obrigatórios corretamente." : "Informe um CPF válido.");
+    if (
+      !data.nome ||
+      !data.sobrenome ||
+      !form.email.checkValidity() ||
+      !cpfOk ||
+      !telefoneOk ||
+      !data.aluno_nome ||
+      !data.aluno_nascimento ||
+      !alunoCpfOk
+    ) {
+      if (!cpfOk) setStatus("Informe um CPF válido do responsável.");
+      else if (!telefoneOk) setStatus("Informe um Telefone/WhatsApp válido.");
+      else if (!alunoCpfOk) setStatus("Se informar CPF do aluno, ele precisa ser válido.");
+      else setStatus("Preencha os campos obrigatórios corretamente.");
       return;
     }
 
@@ -742,14 +1127,18 @@
       return;
     }
 
-    if (!contratoVisualizado) {
-      setStatus("Abra e visualize o contrato em “Ver contrato” antes de enviar.");
+    if (!contratoLidoAteFim || !assinaturaOk) {
+      setStatus(
+        !contratoLidoAteFim
+          ? "Abra o contrato e role até o final antes de enviar."
+          : "Assine o contrato no final da leitura antes de enviar."
+      );
       contractTrigger?.focus();
       return;
     }
 
     if (!data.ciente) {
-      setStatus("Marque que leu e está ciente do contrato para continuar.");
+      setStatus("Marque que leu, assinou e está ciente do contrato para continuar.");
       return;
     }
 
@@ -766,11 +1155,25 @@
           ? "Anual à vista"
           : `Anual ${plano.parcelas}x`;
 
+    submitBtn.disabled = true;
+    setButtonLabel(submitBtn, "Gerando contrato...");
+
+    let contratoPdfBase64 = "";
+    try {
+      contratoPdfBase64 = await generateContratoPdfBase64();
+    } catch (error) {
+      console.error(error);
+    }
+
     const payload = {
       nome: data.nome,
       sobrenome: data.sobrenome,
       cpf: data.cpf,
+      telefone: data.telefone,
       email: data.email,
+      aluno_nome: data.aluno_nome,
+      data_nascimento: data.aluno_nascimento,
+      aluno_cpf: data.aluno_cpf,
       plano_id: plano.id,
       plano_label: plano.label,
       periodicidade,
@@ -781,7 +1184,10 @@
       valor: formatBRL(plano.valorTotal),
       status_pagamento: "Pendente",
       contrato_ciente: true,
+      contrato_assinado: true,
       uso_imagem: data.uso_imagem,
+      contrato_pdf_base64: contratoPdfBase64,
+      assinatura_data_url: assinaturaDataUrl,
       clube: unidade.nome,
       unidade_id: unidade.id,
       unidade_nome: unidade.nome,
@@ -794,7 +1200,6 @@
       horario_label: horario.label,
     };
 
-    submitBtn.disabled = true;
     setButtonLabel(submitBtn, "Enviando...");
 
     try {
@@ -836,7 +1241,8 @@
     form.reset();
     if (planoInput) planoInput.value = "";
     if (horarioInput) horarioInput.value = "";
-    contratoVisualizado = false;
+    setContratoLido(false);
+    resetAssinatura();
     markValidity(contractTrigger, true);
     renderHorarios();
     renderPlanos();

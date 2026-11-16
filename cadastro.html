@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Formulário de mensalidade — NDF Futsal" />
-  <title>Ficha de mensalidade | NDF Futsal</title>
+  <meta name="description" content="Formulário de mensalidade — Futsal em primeira mão" />
+  <title>Ficha de mensalidade | Futsal em primeira mão</title>
   <link rel="icon" href="favicon.svg?v=1" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=26" />
+  <link rel="stylesheet" href="styles.css?v=29" />
   <script>
     (function () {
       var params = new URLSearchParams(window.location.search);
@@ -59,7 +59,7 @@
     <aside class="brand-rail reveal is-visible" aria-label="Identidade da escolinha">
       <p class="brand-rail__eyebrow">Minha Quadra</p>
       <h1 class="brand-rail__title">Domine a <span>quadra</span></h1>
-      <p class="brand-rail__club" id="unit-club">NDF Futsal</p>
+      <p class="brand-rail__club" id="unit-club">Futsal em primeira mão</p>
       <p class="brand-rail__slogan" id="unit-slogan">Selecione a unidade</p>
       <div class="accent-bar" aria-hidden="true"></div>
     </aside>
@@ -87,17 +87,32 @@
               </div>
             </div>
 
-            <div class="field">
-              <label for="cpf">CPF <span aria-hidden="true">*</span></label>
-              <input
-                id="cpf"
-                name="cpf"
-                type="text"
-                inputmode="numeric"
-                placeholder="000.000.000-00"
-                maxlength="14"
-                required
-              />
+            <div class="field-row">
+              <div class="field">
+                <label for="cpf">CPF <span aria-hidden="true">*</span></label>
+                <input
+                  id="cpf"
+                  name="cpf"
+                  type="text"
+                  inputmode="numeric"
+                  placeholder="000.000.000-00"
+                  maxlength="14"
+                  required
+                />
+              </div>
+              <div class="field">
+                <label for="telefone">Telefone/WhatsApp <span aria-hidden="true">*</span></label>
+                <input
+                  id="telefone"
+                  name="telefone"
+                  type="tel"
+                  inputmode="tel"
+                  autocomplete="tel"
+                  placeholder="(63) 99999-9999"
+                  maxlength="16"
+                  required
+                />
+              </div>
             </div>
 
             <div class="field">
@@ -110,6 +125,36 @@
                 placeholder="exemplo@exemplo.com"
                 required
               />
+            </div>
+
+            <div class="section-label"><span>Dados do aluno (participante)</span></div>
+
+            <div class="field">
+              <label for="aluno_nome">Nome do aluno <span aria-hidden="true">*</span></label>
+              <input id="aluno_nome" name="aluno_nome" type="text" autocomplete="name" required />
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label for="aluno_nascimento">Data de nascimento <span aria-hidden="true">*</span></label>
+                <input
+                  id="aluno_nascimento"
+                  name="aluno_nascimento"
+                  type="date"
+                  required
+                />
+              </div>
+              <div class="field">
+                <label for="aluno_cpf">CPF do aluno <span class="optional">(se tiver)</span></label>
+                <input
+                  id="aluno_cpf"
+                  name="aluno_cpf"
+                  type="text"
+                  inputmode="numeric"
+                  placeholder="000.000.000-00"
+                  maxlength="14"
+                />
+              </div>
             </div>
 
             <div class="section-label"><span>Local e horário</span></div>
@@ -132,7 +177,7 @@
             <div class="section-label"><span>Forma de pagamento</span></div>
             <div class="field field--picker">
               <span class="field__label" id="plano-label">Selecione a parcela <span aria-hidden="true">*</span></span>
-              <p class="hint">Pacote anual de R$ 2.160,00 ou cobrança mensal avulsa.</p>
+              <p class="hint">Pacote anual (valores da unidade) ou cobrança mensal avulsa.</p>
               <input type="hidden" id="plano" name="plano" value="" required />
               <button
                 type="button"
@@ -150,7 +195,7 @@
 
             <section class="contract" aria-labelledby="contract-title">
               <div class="section-label"><span id="contract-title">Contrato de prestação de serviços</span></div>
-              <p class="hint hint--required">Obrigatório — é necessário visualizar antes de enviar</p>
+              <p class="hint hint--required">Obrigatório — abra o contrato, role até o final e assine</p>
 
               <button
                 type="button"
@@ -176,10 +221,11 @@
                 </div>
               </fieldset>
 
-              <label class="agree">
-                <input type="checkbox" id="ciente" name="ciente" required />
-                <span>Li o contrato e estou <strong>ciente</strong> de todos os termos. <span aria-hidden="true">*</span></span>
+              <label class="agree agree--locked" id="agree-wrap">
+                <input type="checkbox" id="ciente" name="ciente" required disabled />
+                <span>Li, assinei o contrato e estou <strong>ciente</strong> de todos os termos. <span aria-hidden="true">*</span></span>
               </label>
+              <p class="hint" id="ciente-hint">O aceite só libera depois de ler até o fim e assinar.</p>
             </section>
 
             <button type="submit" class="btn" id="submit-btn">Continuar</button>
@@ -212,7 +258,7 @@
         </section>
 
         <footer class="footer">
-          <p id="form-footer">NDF Futsal · Mensalidades</p>
+          <p id="form-footer">Futsal em primeira mão · Mensalidades</p>
         </footer>
       </div>
     </main>
@@ -290,22 +336,21 @@
           <p class="modal__eyebrow">Aceite digital</p>
           <h3 id="modal-contrato-title">Contrato de prestação de serviços</h3>
         </div>
-        <button type="button" class="modal__close" data-modal-close="modal-contrato" aria-label="Fechar">×</button>
+        <button type="button" class="modal__close" id="close-contrato-x" data-modal-close="modal-contrato" aria-label="Fechar" disabled>×</button>
       </header>
-      <div class="modal__body modal__body--contract">
-        <article class="contract__text">
+      <div class="modal__body modal__body--contract" id="contrato-scroll">
+        <article class="contract__text" id="contract-article">
           <h4>CONTRATO DE PRESTAÇÃO DE SERVIÇOS EDUCACIONAIS E ESPORTIVOS</h4>
 
           <p><strong>CONTRATANTE (Responsável legal pelo aluno):</strong><br />
-            Nome: [NOME DO RESPONSÁVEL]<br />
-            CPF: [CPF] | RG: [RG]<br />
-            Endereço: [ENDEREÇO COMPLETO]<br />
-            Telefone/WhatsApp: [CONTATO] | E-mail: [E-MAIL]
+            Nome: <span data-fill="responsavel_nome">[NOME DO RESPONSÁVEL]</span><br />
+            CPF: <span data-fill="responsavel_cpf">[CPF]</span><br />
+            Telefone/WhatsApp: <span data-fill="responsavel_telefone">[CONTATO]</span> | E-mail: <span data-fill="responsavel_email">[E-MAIL]</span>
           </p>
 
           <p><strong>ALUNO (Participante):</strong><br />
-            Nome: [NOME DO ALUNO]<br />
-            Data de nascimento: [DD/MM/AAAA] | CPF (se tiver): [CPF]
+            Nome: <span data-fill="aluno_nome">[NOME DO ALUNO]</span><br />
+            Data de nascimento: <span data-fill="aluno_nascimento">[DD/MM/AAAA]</span> | CPF (se tiver): <span data-fill="aluno_cpf">[CPF]</span>
           </p>
 
           <p><strong>CONTRATADO:</strong><br />
@@ -323,14 +368,14 @@
           <p>1.2. Este contrato não garante profissionalização, aprovação em peneiras, bolsas, resultados em campeonatos ou evolução específica, por depender de fatores individuais.</p>
 
           <h5>2. LOCAL, DIAS E HORÁRIOS</h5>
-          <p>2.1. As aulas ocorrerão em: [LOCAL/QUADRA/CAMPO].</p>
-          <p>2.2. Dias e horários: [DIAS], das [HORÁRIO INÍCIO] às [HORÁRIO FIM].</p>
+          <p>2.1. As aulas ocorrerão em: <span data-fill="local">[LOCAL/QUADRA/CAMPO]</span>.</p>
+          <p>2.2. Dias e horários: <span data-fill="dias_horario">[DIAS / HORÁRIO]</span>.</p>
           <p>2.3. Alterações pontuais por clima, manutenção, eventos ou segurança poderão ocorrer, com aviso prévio pelo WhatsApp.</p>
 
           <h5>3. MATRÍCULA, MENSALIDADE E FORMA DE PAGAMENTO</h5>
-          <p>3.1. Taxa de matrícula: R$ [VALOR] (paga no ato).</p>
-          <p>3.2. Mensalidade: R$ [VALOR], com vencimento todo dia [DIA].</p>
-          <p>3.3. Forma de pagamento: [PIX / dinheiro / cartão / boleto].</p>
+          <p>3.1. Plano escolhido: <span data-fill="plano">[PLANO]</span>.</p>
+          <p>3.2. Valor da parcela / mensalidade conforme o plano selecionado no cadastro.</p>
+          <p>3.3. Forma de pagamento: Mercado Pago (Pix / cartão), conforme link enviado após o cadastro.</p>
           <p>3.4. Em caso de atraso, incidirá multa de 10%.</p>
           <p>3.5. A ausência de pagamento por 60 dias poderá gerar suspensão do acesso às aulas até regularização.</p>
 
@@ -381,20 +426,43 @@
           <h5>13. FORO</h5>
           <p>13.1. Fica eleito o foro da comarca de Palmas, Tocantins, renunciando as partes a qualquer outro, por mais privilegiado que seja.</p>
 
-          <p>E por estarem de acordo, o CONTRATANTE declara ciência eletrônica neste formulário.</p>
-          <p>Palmas, Tocantins</p>
+          <p>E por estarem de acordo, o CONTRATANTE declara ciência eletrônica neste formulário e assina abaixo.</p>
+          <p>Palmas, Tocantins — <span data-fill="data_assinatura">[DATA]</span></p>
+
+          <div class="signature-block" id="signature-block">
+            <p class="signature-block__title"><strong>Assinatura do RESPONSÁVEL (CONTRATANTE)</strong></p>
+            <p class="signature-block__name">Nome: <span data-fill="responsavel_nome">[NOME DO RESPONSÁVEL]</span></p>
+            <div class="signature-pad-wrap">
+              <canvas
+                id="assinatura-canvas"
+                class="signature-pad"
+                width="640"
+                height="180"
+                aria-label="Área para assinar com o dedo ou mouse"
+              ></canvas>
+              <img id="assinatura-img" class="signature-img" alt="Assinatura do responsável" hidden />
+            </div>
+            <p class="signature-block__hint" id="assinatura-hint">Assine no quadro acima com o dedo ou mouse.</p>
+            <button type="button" class="btn btn--ghost btn--small" id="limpar-assinatura">Limpar assinatura</button>
+          </div>
+
           <p><strong>CONTRATADO:</strong> MARCOS ANTONIO FARIAS SOARES — CNPJ 42.902.156/0001-08</p>
         </article>
       </div>
-      <footer class="modal__footer modal__footer--actions">
-        <button type="button" class="btn btn--ghost" id="download-contrato">Baixar contrato</button>
-        <button type="button" class="btn" data-modal-close="modal-contrato">Fechar contrato</button>
+      <footer class="modal__footer modal__footer--contract">
+        <p class="contract-scroll-hint" id="contrato-scroll-hint">Role até o final, assine e depois feche o contrato.</p>
+        <div class="modal__footer--actions">
+          <button type="button" class="btn btn--ghost" id="download-contrato">Baixar contrato</button>
+          <button type="button" class="btn" id="close-contrato" data-modal-close="modal-contrato" disabled>
+            Fechar contrato
+          </button>
+        </div>
       </footer>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
-  <script src="config.js?v=36"></script>
-  <script src="script.js?v=36"></script>
+  <script src="config.js?v=39"></script>
+  <script src="script.js?v=39"></script>
 </body>
 </html>
