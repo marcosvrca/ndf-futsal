@@ -55,7 +55,7 @@ var MESES_PT = [
  *
  * Extras (no final, para não deslocar dados antigos):
  * Telefone | Data de nascimento | Idade | Plano ID | Forma de pagamento |
- * Nome do aluno | CPF do aluno | Contrato PDF
+ * Nome do aluno | CPF/RG do aluno | Contrato PDF
  *
  * Rode setupPlanilha() após colar este código para atualizar a linha 1.
  */
@@ -86,7 +86,7 @@ var CADASTROS_HEADERS = [
   "Plano ID",
   "Forma de pagamento",
   "Nome do aluno",
-  "CPF do aluno",
+  "CPF/RG do aluno",
   "Contrato PDF",
 ];
 
@@ -674,7 +674,7 @@ function registrarInscricao_(data) {
   var telefone = data.telefone || data.phone || data.celular || "";
   var alunoNome = data.aluno_nome || data.nome_aluno || "";
   var nascimento = data.data_nascimento || data.nascimento || data.aluno_nascimento || data.birthdate || "";
-  var alunoCpf = data.aluno_cpf || data.cpf_aluno || "";
+  var alunoCpf = data.aluno_cpf || data.cpf_aluno || data.aluno_rg || data.rg_aluno || "";
   var idade = data.idade !== undefined && data.idade !== ""
     ? data.idade
     : idadeFromNascimento_(nascimento);

@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=29" />
+  <link rel="stylesheet" href="styles.css?v=30" />
   <script>
     (function () {
       var params = new URLSearchParams(window.location.search);
@@ -145,14 +145,15 @@
                 />
               </div>
               <div class="field">
-                <label for="aluno_cpf">CPF do aluno <span class="optional">(se tiver)</span></label>
+                <label for="aluno_cpf">CPF ou RG do aluno <span aria-hidden="true">*</span></label>
                 <input
                   id="aluno_cpf"
                   name="aluno_cpf"
                   type="text"
-                  inputmode="numeric"
-                  placeholder="000.000.000-00"
-                  maxlength="14"
+                  inputmode="text"
+                  placeholder="CPF ou RG"
+                  maxlength="20"
+                  required
                 />
               </div>
             </div>
@@ -350,7 +351,7 @@
 
           <p><strong>ALUNO (Participante):</strong><br />
             Nome: <span data-fill="aluno_nome">[NOME DO ALUNO]</span><br />
-            Data de nascimento: <span data-fill="aluno_nascimento">[DD/MM/AAAA]</span> | CPF (se tiver): <span data-fill="aluno_cpf">[CPF]</span>
+            Data de nascimento: <span data-fill="aluno_nascimento">[DD/MM/AAAA]</span> | CPF ou RG: <span data-fill="aluno_cpf">[CPF/RG]</span>
           </p>
 
           <p><strong>CONTRATADO:</strong><br />
@@ -462,7 +463,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
-  <script src="config.js?v=39"></script>
-  <script src="script.js?v=39"></script>
+  <script src="config.js?v=40"></script>
+  <script src="script.js?v=40"></script>
 </body>
 </html>

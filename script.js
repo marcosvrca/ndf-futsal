@@ -545,7 +545,7 @@
       responsavel_email: (form.email?.value || "").trim() || "[E-MAIL]",
       aluno_nome: (form.aluno_nome?.value || "").trim() || "[NOME DO ALUNO]",
       aluno_nascimento: formatDateBR(form.aluno_nascimento?.value) || "[DD/MM/AAAA]",
-      aluno_cpf: (form.aluno_cpf?.value || "").trim() || "—",
+      aluno_cpf: (form.aluno_cpf?.value || "").trim() || "[CPF/RG]",
       local: (horario && (horario.local || unidade.local)) || unidade.local || "[LOCAL]",
       dias_horario: horario
         ? `${horario.dias}, ${horario.horario}${horario.turma ? ` — ${horario.turma}` : ""}`
@@ -1038,9 +1038,25 @@
     });
   }
 
+  function isValidAlunoDocumento(value) {
+    const raw = String(value || "").trim();
+    if (!raw) return false;
+    const digits = raw.replace(/\D/g, "");
+    // Se parece CPF (11 dígitos), valida CPF; senão aceita como RG
+    if (digits.length === 11 && /^[\d.\-\s]+$/.test(raw)) {
+      return isValidCPF(raw);
+    }
+    return raw.length >= 4;
+  }
+
   if (alunoCpfInput) {
     alunoCpfInput.addEventListener("input", () => {
-      alunoCpfInput.value = maskCPF(alunoCpfInput.value);
+      const raw = alunoCpfInput.value;
+      const digits = raw.replace(/\D/g, "");
+      // Máscara de CPF só enquanto digita só números até 11 dígitos
+      if (digits.length > 0 && digits.length <= 11 && /^[\d.\-\s]*$/.test(raw)) {
+        alunoCpfInput.value = maskCPF(raw);
+      }
     });
   }
 
@@ -1083,7 +1099,7 @@
     markValidity(form.telefone, telefoneOk);
     markValidity(form.aluno_nome, Boolean(data.aluno_nome));
     markValidity(form.aluno_nascimento, Boolean(data.aluno_nascimento));
-    const alunoCpfOk = !alunoCpfRaw || isValidCPF(alunoCpfRaw);
+    const alunoCpfOk = isValidAlunoDocumento(alunoCpfRaw);
     markValidity(form.aluno_cpf, alunoCpfOk);
     markValidity(horarioTrigger, Boolean(horario));
     markValidity(planoTrigger, Boolean(plano));
@@ -1117,7 +1133,7 @@
     ) {
       if (!cpfOk) setStatus("Informe um CPF válido do responsável.");
       else if (!telefoneOk) setStatus("Informe um Telefone/WhatsApp válido.");
-      else if (!alunoCpfOk) setStatus("Se informar CPF do aluno, ele precisa ser válido.");
+      else if (!alunoCpfOk) setStatus("Informe o CPF ou RG do aluno.");
       else setStatus("Preencha os campos obrigatórios corretamente.");
       return;
     }
