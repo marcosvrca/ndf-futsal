@@ -4,7 +4,7 @@ Landing page estática (HTML/CSS/JS) para cobrança de mensalidade da **COOP/FLA
 
 ## O que tem
 
-- **Home** com 3 unidades: COOP/Taquaralto Futsal, COOP/Fla Palmas, Monteiro Lobato Futsal
+- **Home** com 3 unidades: COOP Futsal, COOP/Fla Palmas, Monteiro Lobato Futsal
 - Formulário por unidade (`cadastro.html?unidade=...`): mesmos campos, local/horários da unidade
 - Validação de CPF, contrato em PDF, modal de parcelas
 - Gravação em **Google Sheets** (Apps Script) — **uma aba por unidade**
@@ -28,7 +28,7 @@ Landing page estática (HTML/CSS/JS) para cobrança de mensalidade da **COOP/FLA
 
 | Aba | Função |
 |-----|--------|
-| **COOP/Taquaralto Futsal** | Cadastros desta unidade |
+| **COOP Futsal** | Cadastros desta unidade |
 | **COOP/Fla Palmas** | Cadastros desta unidade |
 | **Monteiro Lobato Futsal** | Cadastros desta unidade |
 | **Pagamentos** | Parcelas de todas as unidades (coluna **Unidade**) |
@@ -59,7 +59,7 @@ Passos no painel (vale para todas):
 3. Cole a URL no slot `COLE_AQUI_...` correspondente
 4. Publique — o botão só aparece com URL `https://...`
 
-### COOP/Taquaralto — 5 links (`UNIDADES.coop.paymentLinks`)
+### COOP Futsal — 5 links (`UNIDADES.coop.paymentLinks`)
 
 | # | Forma | Valor (pacote R$ 2.160) | Placeholder → trocar |
 |---|--------|-------------------------|----------------------|
@@ -83,7 +83,7 @@ Passos no painel (vale para todas):
 
 | # | Forma | Valor | Placeholder → trocar |
 |---|--------|-------|----------------------|
-| 1 | À vista | R$ 1.680 | `["1x"]` → `COLE_AQUI_LINK_AVISTA` |
+| 1 | À vista | R$ 1.550 | `["1x"]` → `COLE_AQUI_LINK_AVISTA` |
 | 2 | 5× | R$ 320 / parcela | `["5x"]` → `COLE_AQUI_LINK_5X` |
 | 3 | 8× | R$ 200 / parcela | `["8x"]` → `COLE_AQUI_LINK_8X` |
 | 4 | 10× | R$ 160 / parcela | `["10x"]` → `COLE_AQUI_LINK_10X` |
@@ -97,7 +97,7 @@ Há um slot **documentado apenas** em `paymentLinksIdeia.mensal` em cada unidade
 
 | Unidade | Placeholder |
 |---------|-------------|
-| COOP/Taquaralto | `UNIDADES.coop.paymentLinksIdeia.mensal` → `COLE_AQUI_TAQUARALTO_LINK_MENSAL` |
+| COOP Futsal | `UNIDADES.coop.paymentLinksIdeia.mensal` → `COLE_AQUI_TAQUARALTO_LINK_MENSAL` |
 | COOP/Fla Palmas | `UNIDADES.flapalmas.paymentLinksIdeia.mensal` → `COLE_AQUI_FLAPALMAS_LINK_MENSAL` |
 | Monteiro Lobato | `UNIDADES["monteiro-lobato"].paymentLinksIdeia.mensal` → `COLE_AQUI_LINK_MENSAL` |
 

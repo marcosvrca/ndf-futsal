@@ -22,7 +22,7 @@ window.NDF_CONFIG = {
   // URL da implantação do Apps Script (termina com /exec)
   GOOGLE_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzC7UYY24Q6Bjm-y5nrBw7BnzvSuRytuoi46MNKRf60Q1pAjRBJYx5m8TOYooMBlFvaHw/exec",
 
-  // Pacote anual (parcelado) + opção mensal avulsa — padrão (COOP/Taquaralto e COOP/Fla Palmas).
+  // Pacote anual (parcelado) + opção mensal avulsa — padrão (COOP e COOP/Fla Palmas).
   // Unidade com `planos` próprio sobrescreve esta lista (ex.: Monteiro Lobato).
   PLANOS: [
     { id: "1x", label: "Parcela Única de R$ 2.160,00", parcelas: 1, valorParcela: 2160, valorTotal: 2160, tipo: "anual" },
@@ -40,7 +40,7 @@ window.NDF_CONFIG = {
     { id: "mensal", label: "Parcela de R$ 260,00", parcelas: 1, valorParcela: 260, valorTotal: 260, tipo: "mensal" },
   ],
 
-  // Fallback global (COOP/Taquaralto e COOP/Fla Palmas). "#" = ainda sem link.
+  // Fallback global (COOP e COOP/Fla Palmas). "#" = ainda sem link.
   PAYMENT_LINKS: {
     "1x": "#",
     "2x": "#",
@@ -66,13 +66,13 @@ window.NDF_CONFIG = {
     // id da URL: ?unidade=coop (aliases "copp", "copy" e "taquaralto" no script)
     coop: {
       id: "coop",
-      nome: "COOP/Taquaralto Futsal",
-      aba: "COOP/Taquaralto Futsal",
+      nome: "COOP Futsal",
+      aba: "COOP Futsal",
       slogan: "Formando atletas com disciplina e alegria",
       local: "Prisma Taquaralto",
       diasLabel: "Terça e Quinta",
       /**
-       * Links Mercado Pago — COOP/Taquaralto (5 links).
+       * Links Mercado Pago — COOP Futsal (5 links).
        * Substitua cada COLE_AQUI_... pela URL real. Placeholders mantêm o botão oculto.
        */
       paymentLinks: {
@@ -160,10 +160,10 @@ window.NDF_CONFIG = {
       aba: "Monteiro Lobato Futsal",
       slogan: "Esporte e educação no mesmo ritmo",
       local: "Escola Monteiro Lobato",
-      diasLabel: "Segunda e Quarta",
-      // Formas permitidas: à vista / 12x (total R$ 1.680) e 5x / 8x / 10x; mensal avulso R$ 195
+      diasLabel: "Terça e Quinta",
+      // Formas permitidas: à vista R$ 1.550 / 12x e 5x / 8x / 10x; mensal avulso R$ 195
       planos: [
-        { id: "1x", label: "Parcela Única de R$ 1.680,00", parcelas: 1, valorParcela: 1680, valorTotal: 1680, tipo: "anual" },
+        { id: "1x", label: "Parcela Única de R$ 1.550,00", parcelas: 1, valorParcela: 1550, valorTotal: 1550, tipo: "anual" },
         { id: "5x", label: "5 Parcelas de R$ 320,00", parcelas: 5, valorParcela: 320, valorTotal: 1600, tipo: "anual" },
         { id: "8x", label: "8 Parcelas de R$ 200,00", parcelas: 8, valorParcela: 200, valorTotal: 1600, tipo: "anual" },
         { id: "10x", label: "10 Parcelas de R$ 160,00", parcelas: 10, valorParcela: 160, valorTotal: 1600, tipo: "anual" },
@@ -178,7 +178,7 @@ window.NDF_CONFIG = {
        * Chaves = id do plano em `planos` acima.
        */
       paymentLinks: {
-        "1x": "COLE_AQUI_LINK_AVISTA", // à vista R$ 1.680
+        "1x": "COLE_AQUI_LINK_AVISTA", // à vista R$ 1.550
         "5x": "COLE_AQUI_LINK_5X", // 5× R$ 320
         "8x": "COLE_AQUI_LINK_8X", // 8× R$ 200
         "10x": "COLE_AQUI_LINK_10X", // 10× R$ 160
@@ -190,24 +190,24 @@ window.NDF_CONFIG = {
       },
       horarios: [
         {
-          id: "ml-segqua-1730-2019-2017",
-          dias: "Segunda e Quarta",
+          id: "ml-t3-1730-2019-2017",
+          dias: "Terça e Quinta",
           horario: "17:30 às 18:30",
           turma: "Nascidos 2019, 2018 e 2017",
           local: "Escola Monteiro Lobato",
           label: "17:30 às 18:30 — Nascidos 2019, 2018 e 2017",
         },
         {
-          id: "ml-segqua-1830-2016-2014",
-          dias: "Segunda e Quarta",
+          id: "ml-t3-1830-2016-2014",
+          dias: "Terça e Quinta",
           horario: "18:30 às 19:30",
           turma: "Nascidos 2016, 2015 e 2014",
           local: "Escola Monteiro Lobato",
           label: "18:30 às 19:30 — Nascidos 2016, 2015 e 2014",
         },
         {
-          id: "ml-segqua-1930-2013-2011",
-          dias: "Segunda e Quarta",
+          id: "ml-t3-1930-2013-2011",
+          dias: "Terça e Quinta",
           horario: "19:30 às 20:30",
           turma: "Nascidos 2013, 2012 e 2011",
           local: "Escola Monteiro Lobato",
