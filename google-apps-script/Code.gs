@@ -11,8 +11,6 @@
  *  - COOP Futsal
  *  - COOP/FLAPALMAS
  *
- * (Monteiro Lobato Futsal: site/repo separados; resolve mantido abaixo para a mesma planilha)
- *
  * Abas de controle:
  *  - Pagamentos (lançamentos + formatação)
  *  - Resumo (dashboard: totais por forma / unidade / status)
@@ -228,8 +226,6 @@ function resolveUnidadeAba_(data) {
     return "COOP Futsal";
   }
   if (id === "flapalmas" || id === "fla-palmas") return "COOP/FLAPALMAS";
-  // Compatível com o site dedicado Monteiro Lobato (mesma planilha / GOOGLE_SCRIPT_URL)
-  if (id === "monteiro-lobato" || id === "monteiro") return "Monteiro Lobato Futsal";
 
   throw new Error("Unidade inválida ou não informada. Selecione a unidade na home.");
 }
@@ -499,7 +495,7 @@ function ensureHorarios_() {
   sheet.clear();
   sheet.getRange("A1").setValue("Controle de horários por unidade").setFontWeight("bold").setFontSize(14);
   sheet.getRange("A2").setValue(
-    "Cada unidade tem a própria aba de cadastros. Use os filtros nas abas COOP Futsal e COOP/FLAPALMAS (Monteiro Lobato: site dedicado, mesma planilha)."
+    "Cada unidade tem a própria aba de cadastros. Use os filtros nas abas COOP Futsal e COOP/FLAPALMAS."
   );
   sheet.getRange("A4").setValue("Abas de cadastro").setFontWeight("bold");
   for (var i = 0; i < UNIDADE_ABAS.length; i++) {

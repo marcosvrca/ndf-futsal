@@ -42,8 +42,6 @@ Validação de CPF, telefone e contrato ficam no front (`script.js`). O envio us
 | `10x` | 10× R$ 220 (total R$ 2.200) |
 | `mensal` | R$ 260 avulso |
 
-**Monteiro Lobato Futsal** vive em repo/site próprios (`monteiro-lobato-futsal`), com a **mesma** `GOOGLE_SCRIPT_URL` / planilha.
-
 Horários e locais também estão em `config.js` por unidade.
 
 ## Ligar o Google Sheets
@@ -60,7 +58,7 @@ Horários e locais também estão em `config.js` por unidade.
 
 | Aba | Função |
 |-----|--------|
-| COOP Futsal / COOP/FLAPALMAS | Cadastros (Monteiro Lobato: site dedicado, mesma planilha) |
+| COOP Futsal / COOP/FLAPALMAS | Cadastros |
 | Pagamentos | Parcelas de todas as unidades |
 | Resumo | KPIs / totais |
 | MesAtual | Painel do mês |

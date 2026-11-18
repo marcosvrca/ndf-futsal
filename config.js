@@ -24,7 +24,6 @@ window.NDF_CONFIG = {
 
   // Pacote anual (parcelado) + opção mensal avulsa — COOP Futsal e COOP/FLAPALMAS.
   // Sem 6x, 7x, 11x e 12x nestas unidades.
-  // Monteiro Lobato Futsal: site/repo separados (mesma GOOGLE_SCRIPT_URL / planilha).
   PLANOS: [
     { id: "1x", label: "Parcela Única de R$ 2.000,00", parcelas: 1, valorParcela: 2000, valorTotal: 2000, tipo: "anual" },
     { id: "2x", label: "2 Parcelas de R$ 1.080,00", parcelas: 2, valorParcela: 1080, valorTotal: 2160, tipo: "anual" },
