@@ -1180,6 +1180,14 @@
     } catch (error) {
       console.error(error);
     }
+    if (!contratoPdfBase64) {
+      setStatus(
+        "Não foi possível gerar o PDF do contrato. Abra o contrato de novo, assine e tente enviar outra vez."
+      );
+      submitBtn.disabled = false;
+      setButtonLabel(submitBtn, "Continuar");
+      return;
+    }
 
     const payload = {
       nome: data.nome,

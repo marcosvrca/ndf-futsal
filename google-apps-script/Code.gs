@@ -7,9 +7,13 @@
  *
  * Depois rode setupPlanilha() uma vez (▶) para criar/atualizar abas e cabeçalhos.
  *
- * Abas por unidade (cadastros):
+ * Abas por unidade (cadastros) — APENAS estas três:
  *  - COOP Futsal
  *  - COOP/FLAPALMAS
+ *  - Monteiro Lobato Futsal
+ *
+ * setupPlanilha() cria essas abas e remove abas legadas de unidade
+ * (ex.: "COOP Itacoarauto Futsal", "COOP Flapalmas", "COOP/Fla Palmas").
  *
  * Abas de controle:
  *  - Pagamentos (lançamentos + formatação)
@@ -30,6 +34,17 @@ var ABA_HORARIOS = "Horarios";
 var UNIDADE_ABAS = [
   "COOP Futsal",
   "COOP/FLAPALMAS",
+  "Monteiro Lobato Futsal",
+];
+
+/** Abas antigas de unidade a remover no setup (não apaga Pagamentos/Resumo/etc.). */
+var UNIDADE_ABAS_LEGADO = [
+  "COOP Itacoarauto Futsal",
+  "COOP Flapalmas",
+  "COOP/Fla Palmas",
+  "COOP/Taquaralto Futsal",
+  "COOP Taquaralto Futsal",
+  "COOP Futsal ",
 ];
 
 /** Paleta visual da planilha (cabeçalhos / destaques). */
@@ -88,7 +103,8 @@ var CADASTROS_HEADERS = [
   "Contrato PDF",
 ];
 
-var PASTA_CONTRATOS = "Contratos TUDO SOBRE FUTSAL EM UM SÓ LUGAR!";
+// Nome simples (sem "!") — mais fácil de achar no Drive da conta do Apps Script
+var PASTA_CONTRATOS = "Contratos NDF Futsal";
 
 var PAGAMENTOS_HEADERS = [
   "ID cadastro",
@@ -142,10 +158,42 @@ function setupPlanilha() {
   for (var i = 0; i < UNIDADE_ABAS.length; i++) {
     ensureUnidadeSheet_(UNIDADE_ABAS[i]);
   }
+  cleanupUnidadeSheetsLegadas_();
   ensurePagamentos_();
   ensureResumo_();
   ensureMesAtual_();
   ensureHorarios_();
+  // Cria a pasta de contratos no Drive já no setup (não espera o 1º cadastro)
+  try {
+    getOrCreateFolder_(PASTA_CONTRATOS);
+  } catch (err) {
+    Logger.log("Falha ao criar pasta de contratos: " + err);
+  }
+}
+
+/**
+ * Remove abas de unidade antigas/erradas. Mantém UNIDADE_ABAS + abas de controle.
+ * Não apaga abas desconhecidas fora da lista de legado (segurança).
+ */
+function cleanupUnidadeSheetsLegadas_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var keep = {};
+  var i;
+  for (i = 0; i < UNIDADE_ABAS.length; i++) keep[UNIDADE_ABAS[i]] = true;
+  keep[ABA_PAGAMENTOS] = true;
+  keep[ABA_RESUMO] = true;
+  keep[ABA_MES] = true;
+  keep[ABA_HORARIOS] = true;
+
+  var sheets = ss.getSheets();
+  for (i = sheets.length - 1; i >= 0; i--) {
+    var name = sheets[i].getName();
+    if (keep[name]) continue;
+    if (UNIDADE_ABAS_LEGADO.indexOf(name) < 0) continue;
+    // Precisa sobrar pelo menos 1 aba na planilha
+    if (ss.getSheets().length <= 1) continue;
+    ss.deleteSheet(sheets[i]);
+  }
 }
 
 /** Menu na planilha: Formatar Pagamentos / Atualizar Resumo. */
@@ -226,6 +274,7 @@ function resolveUnidadeAba_(data) {
     return "COOP Futsal";
   }
   if (id === "flapalmas" || id === "fla-palmas") return "COOP/FLAPALMAS";
+  if (id === "monteiro-lobato" || id === "monteiro") return "Monteiro Lobato Futsal";
 
   throw new Error("Unidade inválida ou não informada. Selecione a unidade na home.");
 }
@@ -495,7 +544,7 @@ function ensureHorarios_() {
   sheet.clear();
   sheet.getRange("A1").setValue("Controle de horários por unidade").setFontWeight("bold").setFontSize(14);
   sheet.getRange("A2").setValue(
-    "Cada unidade tem a própria aba de cadastros. Use os filtros nas abas COOP Futsal e COOP/FLAPALMAS."
+    "Cada unidade tem a própria aba de cadastros. Use os filtros nas abas COOP Futsal, COOP/FLAPALMAS e Monteiro Lobato Futsal."
   );
   sheet.getRange("A4").setValue("Abas de cadastro").setFontWeight("bold");
   for (var i = 0; i < UNIDADE_ABAS.length; i++) {
@@ -570,13 +619,20 @@ function formaPagamento_(data, meses) {
 
 /**
  * Salva o PDF do contrato (base64) no Google Drive e devolve o link.
- * Se não vier PDF, retorna string vazia (cadastro segue normalmente).
+ * Se falhar, devolve mensagem na coluna Contrato PDF (cadastro NÃO é bloqueado).
  */
 function salvarContratoPdf_(data, cadastroId, unidadeNome) {
   var b64 = data.contrato_pdf_base64 || data.contrato_pdf || "";
-  if (!b64) return "";
+  if (!b64) {
+    return "Sem PDF no envio (contrato_pdf_base64 vazio — gere o PDF no site antes de enviar)";
+  }
 
   try {
+    // Aceita data-URL ou base64 puro; remove espaços/quebras
+    b64 = String(b64)
+      .replace(/^data:application\/pdf;base64,/i, "")
+      .replace(/\s+/g, "");
+
     var pasta = getOrCreateFolder_(PASTA_CONTRATOS);
     var aluno = String(data.aluno_nome || data.nome || "aluno")
       .replace(/[\\/:*?"<>|]+/g, " ")
@@ -585,21 +641,26 @@ function salvarContratoPdf_(data, cadastroId, unidadeNome) {
       .slice(0, 60);
     var nomeArquivo =
       (cadastroId || "CAD") +
-      " — " +
-      String(unidadeNome || "Unidade") +
-      " — " +
+      " - " +
+      String(unidadeNome || "Unidade").replace(/[\\/:*?"<>|]+/g, "-") +
+      " - " +
       aluno +
       ".pdf";
-    var blob = Utilities.newBlob(
-      Utilities.base64Decode(String(b64)),
-      "application/pdf",
-      nomeArquivo
-    );
+
+    var bytes = Utilities.base64Decode(b64);
+    var blob = Utilities.newBlob(bytes, MimeType.PDF, nomeArquivo);
     var file = pasta.createFile(blob);
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+    // Compartilhamento é opcional — não pode impedir o save do arquivo
+    try {
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch (shareErr) {
+      Logger.log("Aviso sharing PDF: " + shareErr);
+    }
+
     return file.getUrl();
   } catch (err) {
-    // Não bloqueia o cadastro se o Drive falhar
+    Logger.log("Erro salvarContratoPdf_: " + err);
     return "Erro ao salvar PDF: " + String(err);
   }
 }
@@ -607,7 +668,9 @@ function salvarContratoPdf_(data, cadastroId, unidadeNome) {
 function getOrCreateFolder_(nome) {
   var pastas = DriveApp.getFoldersByName(nome);
   if (pastas.hasNext()) return pastas.next();
-  return DriveApp.createFolder(nome);
+  var criada = DriveApp.createFolder(nome);
+  Logger.log("Pasta de contratos criada: " + criada.getUrl());
+  return criada;
 }
 
 function idadeFromNascimento_(raw) {
