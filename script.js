@@ -791,6 +791,29 @@
     const cloneHint = clone.querySelector("#assinatura-hint");
     if (cloneHint) cloneHint.remove();
 
+    // Estilos só com hex/rgb — html2canvas quebra em color-mix()/oklch()
+    const pdfStyle = document.createElement("style");
+    pdfStyle.textContent = [
+      ".pdf-contrato, .pdf-contrato * {",
+      "  color:#0f172a !important;",
+      "  background:transparent !important;",
+      "  background-image:none !important;",
+      "  box-shadow:none !important;",
+      "  text-shadow:none !important;",
+      "  filter:none !important;",
+      "  backdrop-filter:none !important;",
+      "  -webkit-backdrop-filter:none !important;",
+      "  position:static !important;",
+      "  transform:none !important;",
+      "  font-family:Georgia,'Times New Roman',serif !important;",
+      "}",
+      ".pdf-contrato { background:#ffffff !important; color:#0f172a !important; }",
+      ".pdf-contrato h4, .pdf-contrato h5 { color:#0f172a !important; margin:1em 0 0.4em; }",
+      ".pdf-contrato p, .pdf-contrato li { color:#0f172a !important; font-size:12px; line-height:1.55; }",
+      ".pdf-contrato img { max-width:420px; height:auto; display:block; border-bottom:1px solid #94a3b8; }",
+    ].join("\n");
+    wrapper.className = "pdf-contrato";
+    wrapper.appendChild(pdfStyle);
     wrapper.appendChild(clone);
     document.body.appendChild(wrapper);
 
@@ -800,7 +823,28 @@
         margin: [12, 12, 12, 12],
         filename: "contrato-escolinha-futsal.pdf",
         image: { type: "jpeg", quality: 0.95 },
-        html2canvas: { scale: 1.6, useCORS: true, backgroundColor: "#ffffff" },
+        html2canvas: {
+          scale: 1.6,
+          useCORS: true,
+          backgroundColor: "#ffffff",
+          // Remove CSS da página (pode ter color-mix) no clone do canvas
+          onclone: function (clonedDoc) {
+            var sheets = clonedDoc.querySelectorAll(
+              'link[rel="stylesheet"], style:not(.pdf-keep)'
+            );
+            for (var i = 0; i < sheets.length; i++) {
+              var node = sheets[i];
+              // Mantém só o <style> dentro do wrapper do PDF
+              if (node.closest && node.closest(".pdf-contrato")) continue;
+              node.remove();
+            }
+            var root = clonedDoc.querySelector(".pdf-contrato");
+            if (root) {
+              root.style.background = "#ffffff";
+              root.style.color = "#0f172a";
+            }
+          },
+        },
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
         pagebreak: { mode: ["css", "legacy"] },
       })
