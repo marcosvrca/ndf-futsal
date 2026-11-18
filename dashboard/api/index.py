@@ -4,13 +4,48 @@ from __future__ import annotations
 import json
 import os
 from collections import Counter
-from functools import lru_cache
-from typing import Any
+from functools import lru_cache, wraps
+from typing import Any, Callable
 
-from flask import Flask, jsonify, render_template_string, request
+from flask import Flask, jsonify, redirect, render_template_string, request, session, url_for
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "ndf-futsal-dashboard-session-key")
+
+AUTH_USER = "marcos.farias@mail.uft.edu.br"
+AUTH_PASS = "NDF-futsal@2016"
 UNIDADE_ABAS = ("COOP Futsal", "COOP/Fla Palmas", "Monteiro Lobato Futsal")
+
+LOGIN_PAGE = """<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Login · Dashboard Futsal</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Manrope:wght@600;800&display=swap" rel="stylesheet"/>
+<style>
+:root{--g:#0f3d2e;--m:#1a5c44;--ink:#10231c;--muted:#4d6359;--gold:#c4a35a;--danger:#f8d7da}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Manrope,system-ui,sans-serif;color:var(--ink);background:linear-gradient(180deg,#f7faf8,#eef5f0);display:flex;align-items:center;justify-content:center;padding:1.5rem}
+.card{width:100%;max-width:420px;background:#fff;border-radius:18px;padding:1.6rem 1.4rem 1.4rem;box-shadow:0 18px 50px rgba(15,61,46,.12)}
+.eyebrow{margin:0 0 .35rem;text-transform:uppercase;letter-spacing:.12em;font-size:.72rem;font-weight:800;color:var(--m)}
+h1{font-family:"Archivo Black",sans-serif;color:var(--g);margin:.1rem 0 .35rem;font-size:1.55rem}
+.lead{margin:0 0 1.1rem;color:var(--muted);font-size:.92rem}
+label{display:block;font-size:.78rem;font-weight:800;color:var(--m);margin:0 0 .35rem}
+input{width:100%;padding:.75rem .85rem;border:1px solid #d5e3db;border-radius:12px;font:inherit;margin-bottom:.85rem;background:#f7faf8}
+input:focus{outline:2px solid rgba(26,92,68,.35);border-color:var(--m)}
+button{width:100%;border:0;border-radius:12px;padding:.85rem 1rem;font:inherit;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--g),var(--m));cursor:pointer}
+button:hover{filter:brightness(1.05)}
+.err{background:var(--danger);color:#7a1f2b;border-radius:10px;padding:.65rem .8rem;margin:0 0 .9rem;font-size:.88rem;font-weight:700}
+</style></head><body>
+<form class="card" method="post" action="{{ url_for('login') }}" autocomplete="username">
+  <p class="eyebrow">Minha Quadra · acesso interno</p>
+  <h1>Entrar no painel</h1>
+  <p class="lead">Use seu e-mail e senha para ver cadastros e gráficos.</p>
+  {% if error %}<p class="err">{{ error }}</p>{% endif %}
+  <label for="username">E-mail</label>
+  <input id="username" name="username" type="email" required autofocus value="{{ username or '' }}"/>
+  <label for="password">Senha</label>
+  <input id="password" name="password" type="password" required/>
+  <button type="submit">Entrar</button>
+</form>
+</body></html>"""
 
 PAGE = """<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -41,6 +76,7 @@ li:first-child{border:0}table{width:100%;border-collapse:collapse;font-size:.92r
 <h1>TUDO SOBRE FUTSAL</h1>
 <p>{{ data.message }}</p>
 <span class="badge {{ 'badge-live' if data.mode=='live' else 'badge-demo' }}">{{ 'AO VIVO' if data.mode=='live' else 'DEMO' }}</span>
+<p style="margin:.7rem 0 0"><a href="{{ url_for('logout') }}" style="color:var(--m);font-size:.85rem;font-weight:800">Sair</a></p>
 <section class="kpis">
 <article class="kpi"><b>Parcelas</b><span>{{ data.kpis.parcelas }}</span></article>
 <article class="kpi"><b>Valor total</b><span>{{ data.kpis.valor_total|brl }}</span></article>
@@ -345,16 +381,75 @@ def load_dashboard() -> dict[str, Any]:
     }
 
 
+def _logged_in() -> bool:
+    return bool(session.get("auth"))
+
+
+def login_required(view: Callable):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if not _logged_in():
+            if request.path.rstrip("/").endswith("/api/summary") or request.path.endswith("summary"):
+                return jsonify({"ok": False, "error": "unauthorized"}), 401
+            return redirect(url_for("login", next=request.path))
+        return view(*args, **kwargs)
+
+    return wrapped
+
+
 def _page():
     return render_template_string(PAGE, data=load_dashboard())
 
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if _logged_in():
+        return redirect(url_for("entry"))
+    error = ""
+    username = ""
+    if request.method == "POST":
+        username = (request.form.get("username") or "").strip()
+        password = request.form.get("password") or ""
+        if username.lower() == AUTH_USER.lower() and password == AUTH_PASS:
+            session.clear()
+            session["auth"] = True
+            session["user"] = AUTH_USER
+            nxt = request.args.get("next") or "/"
+            if not nxt.startswith("/") or nxt.startswith("//"):
+                nxt = "/"
+            return redirect(nxt)
+        error = "E-mail ou senha inválidos."
+    return render_template_string(LOGIN_PAGE, error=error, username=username)
+
+
+@app.route("/logout", methods=["GET", "POST"])
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({"ok": True, "service": "ndf-futsal-dashboard"})
+
+
+@app.route("/api/summary", methods=["GET"])
+@login_required
+def api_summary():
+    return jsonify(load_dashboard())
+
+
 @app.route("/", defaults={"path": ""}, methods=["GET"])
 @app.route("/<path:path>", methods=["GET"])
+@login_required
 def entry(path: str = ""):
     full = (request.path or "/").rstrip("/") or "/"
     if full.endswith("/health") or path.endswith("health"):
-        return jsonify({"ok": True, "service": "ndf-futsal-dashboard", "path": request.path})
+        return health()
     if full.endswith("/api/summary") or path.endswith("summary"):
-        return jsonify(load_dashboard())
+        return api_summary()
+    if full.endswith("/logout") or path.endswith("logout"):
+        return logout()
+    if full.endswith("/login") or path.endswith("login"):
+        return login()
     return _page()
