@@ -40,4 +40,12 @@ npx vercel --prod
 ```
 
 No painel da Vercel, defina `GOOGLE_SHEETS_ID` e `GOOGLE_SERVICE_ACCOUNT_JSON` para sair do modo demo.
-O entrypoint de produção é `api/index.py` (Flask self-contained). Localmente você pode usar `python app.py` ou `streamlit run streamlit_app.py`.
+
+Root Directory do projeto: `dashboard`. O entrypoint Flask fica em `pyproject.toml`:
+
+```toml
+[tool.vercel]
+entrypoint = "api.index:app"
+```
+
+Localmente você pode usar `python app.py` ou `streamlit run streamlit_app.py`.
