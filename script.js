@@ -766,16 +766,191 @@
     if (host.parentNode) host.parentNode.removeChild(host);
   }
 
+  function waitTwoFrames_() {
+    return new Promise(function (resolve) {
+      requestAnimationFrame(function () {
+        requestAnimationFrame(resolve);
+      });
+    });
+  }
+
+  function getHtml2Canvas_() {
+    if (typeof window.html2canvas === "function") return window.html2canvas;
+    throw new Error("html2canvas não disponível (bundle html2pdf).");
+  }
+
+  function getJsPDF_() {
+    if (window.jspdf && typeof window.jspdf.jsPDF === "function") {
+      return window.jspdf.jsPDF;
+    }
+    if (typeof window.jsPDF === "function") return window.jsPDF;
+    throw new Error("jsPDF não disponível (bundle html2pdf).");
+  }
+
+  function countNonWhitePixels_(canvas, maxW, maxH) {
+    try {
+      var ctx = canvas.getContext("2d");
+      var w = Math.min(maxW || 80, canvas.width);
+      var h = Math.min(maxH || 80, canvas.height);
+      var data = ctx.getImageData(0, 0, w, h).data;
+      var nonWhite = 0;
+      for (var i = 0; i < data.length; i += 4) {
+        if (data[i] < 250 || data[i + 1] < 250 || data[i + 2] < 250) nonWhite++;
+      }
+      return nonWhite;
+    } catch (err) {
+      console.warn("[pdf-contrato] pixel sample failed", err);
+      return -1;
+    }
+  }
+
+  /** Uma imagem alta → várias páginas A4 (evita pagebreak do html2pdf que saía em branco). */
+  function canvasToMultiPagePdfDataUri_(canvas) {
+    var JsPDF = getJsPDF_();
+    var pdf = new JsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+    var pageW = pdf.internal.pageSize.getWidth();
+    var pageH = pdf.internal.pageSize.getHeight();
+    var margin = 10;
+    var usableW = pageW - margin * 2;
+    var usableH = pageH - margin * 2;
+    var imgW = usableW;
+    var imgH = (canvas.height * imgW) / canvas.width;
+    var imgData = canvas.toDataURL("image/jpeg", 0.95);
+
+    var heightLeft = imgH;
+    var y = margin;
+    pdf.addImage(imgData, "JPEG", margin, y, imgW, imgH);
+    heightLeft -= usableH;
+
+    while (heightLeft > 0.5) {
+      y = margin - (imgH - heightLeft);
+      pdf.addPage();
+      pdf.addImage(imgData, "JPEG", margin, y, imgW, imgH);
+      heightLeft -= usableH;
+    }
+
+    return pdf.output("datauristring");
+  }
+
+  async function captureHostCanvas_(host, scale) {
+    var html2canvasFn = getHtml2Canvas_();
+    var canvas = await html2canvasFn(host, {
+      scale: scale,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: "#ffffff",
+      logging: false,
+      windowWidth: host.scrollWidth || 794,
+      windowHeight: host.scrollHeight || host.offsetHeight,
+    });
+    var probe = canvas.toDataURL("image/jpeg", 0.5);
+    var nonWhite = countNonWhitePixels_(canvas, 80, 80);
+    console.info(
+      "[pdf-contrato] scale=",
+      scale,
+      "canvas=",
+      canvas.width,
+      "x",
+      canvas.height,
+      "dataUrlPrefix=",
+      probe.slice(0, 31),
+      "dataUrlLen=",
+      probe.length,
+      "nonWhite80x80=",
+      nonWhite
+    );
+    return { canvas: canvas, probe: probe, nonWhite: nonWhite };
+  }
+
   /**
-   * Monta o PDF a partir de um HOST NOVO com HTML + estilos inline.
-   * Evita clonar o modal (hidden/max-height/stacking) — causa clássica de PDF branco.
+   * Fallback: captura em 2 metades (1–7 / 8–fim+assinatura) e une no jsPDF.
+   * Usado se o canvas único vier quase branco (bug de elemento muito alto).
    */
-  function buildContratoPdfWorker() {
-    const article = modalContrato
+  async function captureContratoSplitPdf_(scratchHtml) {
+    var JsPDF = getJsPDF_();
+    var pdf = new JsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+    var margin = 10;
+    var pageW = pdf.internal.pageSize.getWidth();
+    var usableW = pageW - margin * 2;
+
+    function buildPartialHost(nodes) {
+      var host = document.createElement("div");
+      host.style.cssText =
+        "position:fixed;left:0;top:0;width:794px;padding:16px 20px;margin:0;background:#ffffff;color:#0f172a;font-family:Georgia,'Times New Roman',serif;font-size:11px;line-height:1.45;box-sizing:border-box;z-index:2147483646;opacity:1;visibility:visible;display:block;";
+      nodes.forEach(function (n) {
+        host.appendChild(n.cloneNode(true));
+      });
+      document.body.appendChild(host);
+      void host.offsetHeight;
+      return host;
+    }
+
+    var shell = document.createElement("div");
+    shell.innerHTML = scratchHtml;
+    var kids = Array.prototype.slice.call(shell.childNodes).filter(function (n) {
+      return n.nodeType === 1;
+    });
+    var mid = Math.ceil(kids.length / 2);
+    var partA = kids.slice(0, mid);
+    var partB = kids.slice(mid);
+
+    var hostA = buildPartialHost(partA);
+    await waitTwoFrames_();
+    var capA = await captureHostCanvas_(hostA, 1);
+    cleanupPdfHost_(hostA);
+
+    var hostB = buildPartialHost(partB);
+    await waitTwoFrames_();
+    var capB = await captureHostCanvas_(hostB, 1);
+    cleanupPdfHost_(hostB);
+
+    function addCanvasPages(canvas, isFirst) {
+      var imgW = usableW;
+      var imgH = (canvas.height * imgW) / canvas.width;
+      var imgData = canvas.toDataURL("image/jpeg", 0.95);
+      var pageH = pdf.internal.pageSize.getHeight();
+      var usableH = pageH - margin * 2;
+      var heightLeft = imgH;
+      var y = margin;
+      if (!isFirst) pdf.addPage();
+      pdf.addImage(imgData, "JPEG", margin, y, imgW, imgH);
+      heightLeft -= usableH;
+      while (heightLeft > 0.5) {
+        y = margin - (imgH - heightLeft);
+        pdf.addPage();
+        pdf.addImage(imgData, "JPEG", margin, y, imgW, imgH);
+        heightLeft -= usableH;
+      }
+    }
+
+    if (capA.nonWhite < 5 && capB.nonWhite < 5) {
+      throw new Error(
+        "Canvas do contrato ficou branco mesmo em 2 partes (scale 1). nonWhite A/B=" +
+          capA.nonWhite +
+          "/" +
+          capB.nonWhite
+      );
+    }
+
+    addCanvasPages(capA.canvas, true);
+    addCanvasPages(capB.canvas, false);
+    console.info("[pdf-contrato] usou captura em 2 partes (split)");
+    return pdf.output("datauristring");
+  }
+
+  /**
+   * Monta host isolado com HTML + estilos inline (modal hidden não importa).
+   */
+  function buildContratoPdfHost_() {
+    if (typeof window.html2canvas !== "function" && typeof window.html2pdf !== "function") {
+      return null;
+    }
+
+    var article = modalContrato
       ? modalContrato.querySelector("#contract-article") ||
         modalContrato.querySelector(".contract__text")
       : null;
-    if (!article || typeof window.html2pdf !== "function") return null;
+    if (!article) return null;
 
     fillContractPlaceholders();
     if (assinaturaOk && assinaturaDataUrl && assinaturaImg) {
@@ -783,15 +958,18 @@
       assinaturaImg.hidden = false;
     }
 
-    // Copia o HTML do artigo (modal pode estar hidden — o texto ainda está no DOM)
-    const scratch = document.createElement("div");
+    var scratch = document.createElement("div");
     scratch.innerHTML = article.innerHTML;
 
-    scratch.querySelectorAll("canvas, button, #limpar-assinatura, #assinatura-hint, .signature-block__hint").forEach(function (n) {
-      n.remove();
-    });
+    scratch
+      .querySelectorAll(
+        "canvas, button, #limpar-assinatura, #assinatura-hint, .signature-block__hint"
+      )
+      .forEach(function (n) {
+        n.remove();
+      });
 
-    const img = scratch.querySelector("#assinatura-img, img.signature-img");
+    var img = scratch.querySelector("#assinatura-img, img.signature-img");
     if (img && assinaturaDataUrl) {
       img.removeAttribute("hidden");
       img.setAttribute("src", assinaturaDataUrl);
@@ -803,22 +981,21 @@
       img.remove();
     }
 
-    const sigWrap = scratch.querySelector(".signature-pad-wrap");
+    var sigWrap = scratch.querySelector(".signature-pad-wrap");
     if (sigWrap) {
       sigWrap.setAttribute(
         "style",
         "border:none;padding:0;margin:0;background:#ffffff;min-height:120px;"
       );
     }
-    const sigBlock = scratch.querySelector(".signature-block");
+    var sigBlock = scratch.querySelector(".signature-block");
     if (sigBlock) {
       sigBlock.setAttribute(
         "style",
-        "margin-top:18px;padding-top:12px;border-top:1px solid #cbd5e1;page-break-inside:avoid;"
+        "margin-top:18px;padding-top:12px;border-top:1px solid #cbd5e1;"
       );
     }
 
-    // Estilos inline em cada bloco — html2canvas não depende do CSS da página
     scratch.querySelectorAll("h4").forEach(function (el) {
       el.setAttribute(
         "style",
@@ -841,9 +1018,13 @@
       el.setAttribute("style", "margin:0 0 8px;padding-left:18px;color:#0f172a;");
     });
 
-    const texto = String(scratch.innerText || "").replace(/\s+/g, " ").trim();
-    const htmlLen = String(scratch.innerHTML || "").length;
-    console.info("[pdf-contrato] texto=", texto.length, "html=", htmlLen);
+    var texto = String(scratch.innerText || "").replace(/\s+/g, " ").trim();
+    console.info(
+      "[pdf-contrato] texto=",
+      texto.length,
+      "html=",
+      String(scratch.innerHTML || "").length
+    );
     if (texto.length < 200) {
       throw new Error(
         "HTML do contrato veio vazio no PDF (texto=" +
@@ -852,8 +1033,7 @@
       );
     }
 
-    // Host fresco fora do modal — position relative no fluxo (não fixed/z-index)
-    const host = document.createElement("div");
+    var host = document.createElement("div");
     host.id = "pdf-contrato-host";
     host.setAttribute("aria-hidden", "true");
     host.style.cssText = [
@@ -879,6 +1059,7 @@
       "pointer-events:none",
     ].join(";");
     host.innerHTML = scratch.innerHTML;
+    host._scratchHtml = scratch.innerHTML;
 
     document.body.appendChild(host);
     void host.offsetHeight;
@@ -891,60 +1072,78 @@
     if (host.offsetHeight < 80) {
       cleanupPdfHost_(host);
       throw new Error(
-        "Host do PDF com altura zero (" +
-          host.offsetHeight +
-          "px). Não foi possível capturar o contrato."
+        "Host do PDF com altura zero (" + host.offsetHeight + "px)."
       );
     }
 
-    const worker = window
-      .html2pdf()
-      .set({
-        margin: [10, 10, 10, 10],
-        filename: "contrato-escolinha-futsal.pdf",
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: "#ffffff",
-          logging: false,
-          // Sem scrollY negativo / sem onclone que stripa CSS — geravam página branca
-        },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-        pagebreak: { mode: "legacy" },
-      })
-      .from(host);
+    return host;
+  }
 
-    return { worker, wrapper: host };
+  /**
+   * Pipeline: (1) scale 1 + jsPDF fatiado; se canvas branco → (3) split 2 partes.
+   * Não usa html2pdf().set().from() — o pagebreak dele gerava 1 página branca.
+   */
+  async function renderContratoPdfDataUri_(host) {
+    await waitTwoFrames_();
+
+    // (1) scale 1 — reduz canvas (~1954px) vs scale 2 (~3908px)
+    var cap = await captureHostCanvas_(host, 1);
+
+    if (!cap.probe || cap.probe.indexOf("data:image") !== 0) {
+      throw new Error(
+        "toDataURL não retornou data:image (prefix=" +
+          String(cap.probe || "").slice(0, 40) +
+          ")"
+      );
+    }
+
+    if (cap.nonWhite >= 5) {
+      console.info("[pdf-contrato] approach=scale1+jsPDF-slice OK");
+      return canvasToMultiPagePdfDataUri_(cap.canvas);
+    }
+
+    // Canvas único veio branco → (3) split
+    console.warn(
+      "[pdf-contrato] canvas scale1 quase branco; tentando split 2 partes"
+    );
+    var html = host._scratchHtml || host.innerHTML;
+    cleanupPdfHost_(host);
+    host._cleanedEarly = true;
+    return await captureContratoSplitPdf_(html);
   }
 
   async function downloadContrato() {
-    const downloadBtn = document.getElementById("download-contrato");
-    let built = null;
+    var downloadBtn = document.getElementById("download-contrato");
+    var host = null;
     if (downloadBtn) {
       downloadBtn.disabled = true;
       setButtonLabel(downloadBtn, "Gerando PDF...");
     }
 
     try {
-      built = buildContratoPdfWorker();
-      if (!built) {
+      host = buildContratoPdfHost_();
+      if (!host) {
         setStatus(
-          "Falha ao montar o PDF: " +
-            (!window.html2pdf
-              ? "biblioteca html2pdf não carregou. Recarregue a página."
-              : "HTML do contrato indisponível.")
+          "Falha ao montar o PDF: biblioteca html2canvas/jsPDF indisponível."
         );
         return;
       }
-      // Garante layout pintado antes da captura
-      await new Promise(function (r) {
-        requestAnimationFrame(function () {
-          requestAnimationFrame(r);
-        });
+      var dataUri = await renderContratoPdfDataUri_(host);
+      if (host._cleanedEarly) host = null;
+      var comma = dataUri.indexOf(",");
+      var b64 = comma >= 0 ? dataUri.slice(comma + 1) : dataUri;
+      var bytes = Uint8Array.from(atob(b64), function (c) {
+        return c.charCodeAt(0);
       });
-      await built.worker.save();
+      var blob = new Blob([bytes], { type: "application/pdf" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "contrato-escolinha-futsal.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
     } catch (error) {
       console.error(error);
       setStatus(
@@ -952,7 +1151,7 @@
           (error && error.message ? error.message : String(error))
       );
     } finally {
-      cleanupPdfHost_(built && built.wrapper);
+      if (host && !host._cleanedEarly) cleanupPdfHost_(host);
       if (downloadBtn) {
         downloadBtn.disabled = false;
         setButtonLabel(downloadBtn, "Baixar contrato");
@@ -962,23 +1161,17 @@
 
   /** Gera PDF do contrato preenchido e devolve base64 (sem prefixo data:). */
   async function generateContratoPdfBase64() {
-    const built = buildContratoPdfWorker();
-    if (!built) {
+    var host = buildContratoPdfHost_();
+    if (!host) {
       throw new Error(
-        !window.html2pdf
-          ? "Biblioteca html2pdf não carregou. Recarregue a página."
-          : "Não foi possível montar o HTML do contrato para PDF."
+        "Não foi possível montar o HTML do contrato para PDF (html2canvas/jsPDF)."
       );
     }
     try {
-      await new Promise(function (r) {
-        requestAnimationFrame(function () {
-          requestAnimationFrame(r);
-        });
-      });
-      const dataUri = await built.worker.outputPdf("datauristring");
-      const comma = String(dataUri).indexOf(",");
-      const b64 =
+      var dataUri = await renderContratoPdfDataUri_(host);
+      if (host._cleanedEarly) host = null;
+      var comma = String(dataUri).indexOf(",");
+      var b64 =
         comma >= 0 ? String(dataUri).slice(comma + 1) : String(dataUri);
       if (!b64 || b64.length < 64) {
         throw new Error("PDF gerado vazio ou inválido (base64 curto).");
@@ -990,7 +1183,7 @@
         ? error
         : new Error(String(error || "Falha desconhecida ao gerar PDF"));
     } finally {
-      cleanupPdfHost_(built.wrapper);
+      if (host && !host._cleanedEarly) cleanupPdfHost_(host);
     }
   }
 
