@@ -10,7 +10,7 @@ Site **estático** (HTML/CSS/JS) para matrícula/mensalidade das escolinhas, sem
 
 | Arquivo / pasta | Função |
 |-----------------|--------|
-| `index.html`, `home.js` | Home com as 3 unidades |
+| `index.html`, `home.js` | Home com COOP Futsal e COOP/FLAPALMAS |
 | `cadastro.html`, `script.js` | Formulário por unidade (`?unidade=`) |
 | `config.js` | Planos, horários, URL do Apps Script |
 | `styles.css`, `light.html`, `dark.html` | Visual / temas |
@@ -22,7 +22,8 @@ Site **estático** (HTML/CSS/JS) para matrícula/mensalidade das escolinhas, sem
 ## Fluxo do formulário
 
 1. Home → escolhe a unidade  
-2. `cadastro.html?unidade=coop|flapalmas|monteiro-lobato`  
+2. `cadastro.html?unidade=coop|flapalmas`  
+
 3. Dados do responsável/aluno, horário, plano  
 4. Lê o contrato até o fim + assinatura no canvas  
 5. Gera PDF (html2pdf) e **POST** JSON para `GOOGLE_SCRIPT_URL`  
@@ -32,7 +33,7 @@ Validação de CPF, telefone e contrato ficam no front (`script.js`). O envio us
 
 ## Planos (como em `config.js`)
 
-**COOP Futsal** e **COOP/Fla Palmas** (`PLANOS` global):
+**COOP Futsal** e **COOP/FLAPALMAS** (`PLANOS` global):
 
 | ID | Resumo |
 |----|--------|
@@ -41,13 +42,7 @@ Validação de CPF, telefone e contrato ficam no front (`script.js`). O envio us
 | `10x` | 10× R$ 220 (total R$ 2.200) |
 | `mensal` | R$ 260 avulso |
 
-**Monteiro Lobato** (`UNIDADES["monteiro-lobato"].planos`):
-
-| ID | Resumo |
-|----|--------|
-| `1x` | À vista R$ 1.550 |
-| `5x` / `8x` / `10x` / `11x` | Anual parcelado |
-| `mensal` | R$ 195 avulso |
+**Monteiro Lobato Futsal** vive em repo/site próprios (`monteiro-lobato-futsal`), com a **mesma** `GOOGLE_SCRIPT_URL` / planilha.
 
 Horários e locais também estão em `config.js` por unidade.
 
@@ -65,7 +60,7 @@ Horários e locais também estão em `config.js` por unidade.
 
 | Aba | Função |
 |-----|--------|
-| COOP Futsal / COOP/Fla Palmas / Monteiro Lobato Futsal | Cadastros |
+| COOP Futsal / COOP/FLAPALMAS | Cadastros (Monteiro Lobato: site dedicado, mesma planilha) |
 | Pagamentos | Parcelas de todas as unidades |
 | Resumo | KPIs / totais |
 | MesAtual | Painel do mês |

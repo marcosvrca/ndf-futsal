@@ -22,9 +22,9 @@ window.NDF_CONFIG = {
   // URL da implantação do Apps Script (termina com /exec)
   GOOGLE_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzC7UYY24Q6Bjm-y5nrBw7BnzvSuRytuoi46MNKRf60Q1pAjRBJYx5m8TOYooMBlFvaHw/exec",
 
-  // Pacote anual (parcelado) + opção mensal avulsa — padrão (COOP e COOP/Fla Palmas).
-  // Unidade com `planos` próprio sobrescreve esta lista (ex.: Monteiro Lobato).
+  // Pacote anual (parcelado) + opção mensal avulsa — COOP Futsal e COOP/FLAPALMAS.
   // Sem 6x, 7x, 11x e 12x nestas unidades.
+  // Monteiro Lobato Futsal: site/repo separados (mesma GOOGLE_SCRIPT_URL / planilha).
   PLANOS: [
     { id: "1x", label: "Parcela Única de R$ 2.000,00", parcelas: 1, valorParcela: 2000, valorTotal: 2000, tipo: "anual" },
     { id: "2x", label: "2 Parcelas de R$ 1.080,00", parcelas: 2, valorParcela: 1080, valorTotal: 2160, tipo: "anual" },
@@ -37,7 +37,7 @@ window.NDF_CONFIG = {
     { id: "mensal", label: "Parcela de R$ 260,00", parcelas: 1, valorParcela: 260, valorTotal: 260, tipo: "mensal" },
   ],
 
-  // Fallback global (COOP e COOP/Fla Palmas). "#" = ainda sem link.
+  // Fallback global (COOP e COOP/FLAPALMAS). "#" = ainda sem link.
   PAYMENT_LINKS: {
     "1x": "#",
     "2x": "#",
@@ -99,13 +99,13 @@ window.NDF_CONFIG = {
     },
     flapalmas: {
       id: "flapalmas",
-      nome: "COOP/Fla Palmas",
-      aba: "COOP/Fla Palmas",
+      nome: "COOP/FLAPALMAS",
+      aba: "COOP/FLAPALMAS",
       slogan: "Por um esporte que qualifica e unifica",
       local: "906 Sul",
       diasLabel: "Segunda e Quarta",
       /**
-       * Links Mercado Pago — COOP/Fla Palmas.
+       * Links Mercado Pago — COOP/FLAPALMAS.
        * Substitua cada COLE_AQUI_... pela URL real. Placeholders mantêm o botão oculto.
        */
       paymentLinks: {
@@ -120,86 +120,28 @@ window.NDF_CONFIG = {
       },
       horarios: [
         {
-          id: "fla-segqua-14-sub8-9",
+          id: "fla-segqua-1400-sub8-9",
           dias: "Segunda e Quarta",
-          horario: "14:00 às 15:10",
+          horario: "14:00 às 15:00",
           turma: "SUB8 e SUB9",
           local: "906 Sul",
-          label: "14:00 às 15:10 — SUB8 e SUB9",
+          label: "14:00 às 15:00 — SUB8 e SUB9",
         },
         {
-          id: "fla-segqua-1510-sub11-12",
+          id: "fla-segqua-1500-sub10",
           dias: "Segunda e Quarta",
-          horario: "15:10 às 16:20",
-          turma: "SUB11 e SUB12",
-          local: "906 Sul",
-          label: "15:10 às 16:20 — SUB11 e SUB12",
-        },
-        {
-          id: "fla-segqua-1620-sub10",
-          dias: "Segunda e Quarta",
-          horario: "16:20 às 17:30",
+          horario: "15:00 às 16:00",
           turma: "SUB10",
           local: "906 Sul",
-          label: "16:20 às 17:30 — SUB10",
-        },
-      ],
-    },
-    "monteiro-lobato": {
-      id: "monteiro-lobato",
-      nome: "Monteiro Lobato Futsal",
-      aba: "Monteiro Lobato Futsal",
-      slogan: "Esporte e educação no mesmo ritmo",
-      local: "Escola Monteiro Lobato",
-      diasLabel: "Terça e Quinta",
-      // Formas: à vista R$ 1.550 / 5x / 8x / 10x / 11x R$ 150; mensal avulso R$ 195
-      planos: [
-        { id: "1x", label: "Parcela Única de R$ 1.550,00", parcelas: 1, valorParcela: 1550, valorTotal: 1550, tipo: "anual" },
-        { id: "5x", label: "5 Parcelas de R$ 320,00", parcelas: 5, valorParcela: 320, valorTotal: 1600, tipo: "anual" },
-        { id: "8x", label: "8 Parcelas de R$ 200,00", parcelas: 8, valorParcela: 200, valorTotal: 1600, tipo: "anual" },
-        { id: "10x", label: "10 Parcelas de R$ 160,00", parcelas: 10, valorParcela: 160, valorTotal: 1600, tipo: "anual" },
-        { id: "11x", label: "11 Parcelas de R$ 150,00", parcelas: 11, valorParcela: 150, valorTotal: 1650, tipo: "anual" },
-        { id: "mensal", label: "Parcela de R$ 195,00", parcelas: 1, valorParcela: 195, valorTotal: 195, tipo: "mensal" },
-      ],
-      /**
-       * Links Mercado Pago — Monteiro Lobato.
-       * Substitua cada COLE_AQUI_... pela URL real. Placeholders mantêm o botão oculto.
-       */
-      paymentLinks: {
-        "1x": "COLE_AQUI_LINK_AVISTA", // à vista R$ 1.550
-        "5x": "COLE_AQUI_LINK_5X", // 5× R$ 320
-        "8x": "COLE_AQUI_LINK_8X", // 8× R$ 200
-        "10x": "COLE_AQUI_LINK_10X", // 10× R$ 160
-        "11x": "COLE_AQUI_LINK_11X", // 11× R$ 150
-      },
-      // IDEIA (não usado): assinatura Preapproval mensal avulsa — script.js NÃO lê este objeto
-      paymentLinksIdeia: {
-        mensal: "COLE_AQUI_LINK_MENSAL",
-      },
-      horarios: [
-        {
-          id: "ml-t3-1730-2019-2017",
-          dias: "Terça e Quinta",
-          horario: "17:30 às 18:30",
-          turma: "Nascidos 2019, 2018 e 2017",
-          local: "Escola Monteiro Lobato",
-          label: "17:30 às 18:30 — Nascidos 2019, 2018 e 2017",
+          label: "15:00 às 16:00 — SUB10",
         },
         {
-          id: "ml-t3-1830-2016-2014",
-          dias: "Terça e Quinta",
-          horario: "18:30 às 19:30",
-          turma: "Nascidos 2016, 2015 e 2014",
-          local: "Escola Monteiro Lobato",
-          label: "18:30 às 19:30 — Nascidos 2016, 2015 e 2014",
-        },
-        {
-          id: "ml-t3-1930-2013-2011",
-          dias: "Terça e Quinta",
-          horario: "19:30 às 20:30",
-          turma: "Nascidos 2013, 2012 e 2011",
-          local: "Escola Monteiro Lobato",
-          label: "19:30 às 20:30 — Nascidos 2013, 2012 e 2011",
+          id: "fla-segqua-1600-sub11-12",
+          dias: "Segunda e Quarta",
+          horario: "16:00 às 17:20",
+          turma: "SUB11 e SUB12",
+          local: "906 Sul",
+          label: "16:00 às 17:20 — SUB11 e SUB12",
         },
       ],
     },

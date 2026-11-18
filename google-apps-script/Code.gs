@@ -9,8 +9,9 @@
  *
  * Abas por unidade (cadastros):
  *  - COOP Futsal
- *  - COOP/Fla Palmas
- *  - Monteiro Lobato Futsal
+ *  - COOP/FLAPALMAS
+ *
+ * (Monteiro Lobato Futsal: site/repo separados; resolve mantido abaixo para a mesma planilha)
  *
  * Abas de controle:
  *  - Pagamentos (lançamentos + formatação)
@@ -30,8 +31,7 @@ var ABA_HORARIOS = "Horarios";
 
 var UNIDADE_ABAS = [
   "COOP Futsal",
-  "COOP/Fla Palmas",
-  "Monteiro Lobato Futsal",
+  "COOP/FLAPALMAS",
 ];
 
 /** Paleta visual da planilha (cabeçalhos / destaques). */
@@ -220,12 +220,15 @@ function ensureUnidadeSheet_(nomeAba) {
 function resolveUnidadeAba_(data) {
   var aba = String(data.aba || data.unidade_nome || "").trim();
   if (UNIDADE_ABAS.indexOf(aba) >= 0) return aba;
+  // Alias do nome antigo da aba
+  if (aba === "COOP/Fla Palmas") return "COOP/FLAPALMAS";
 
   var id = String(data.unidade_id || "").trim().toLowerCase();
   if (id === "coop" || id === "copp" || id === "copy" || id === "taquaralto") {
     return "COOP Futsal";
   }
-  if (id === "flapalmas" || id === "fla-palmas") return "COOP/Fla Palmas";
+  if (id === "flapalmas" || id === "fla-palmas") return "COOP/FLAPALMAS";
+  // Compatível com o site dedicado Monteiro Lobato (mesma planilha / GOOGLE_SCRIPT_URL)
   if (id === "monteiro-lobato" || id === "monteiro") return "Monteiro Lobato Futsal";
 
   throw new Error("Unidade inválida ou não informada. Selecione a unidade na home.");
@@ -496,7 +499,7 @@ function ensureHorarios_() {
   sheet.clear();
   sheet.getRange("A1").setValue("Controle de horários por unidade").setFontWeight("bold").setFontSize(14);
   sheet.getRange("A2").setValue(
-    "Cada unidade tem a própria aba de cadastros. Use os filtros nas abas COOP Futsal, COOP/Fla Palmas e Monteiro Lobato Futsal."
+    "Cada unidade tem a própria aba de cadastros. Use os filtros nas abas COOP Futsal e COOP/FLAPALMAS (Monteiro Lobato: site dedicado, mesma planilha)."
   );
   sheet.getRange("A4").setValue("Abas de cadastro").setFontWeight("bold");
   for (var i = 0; i < UNIDADE_ABAS.length; i++) {
