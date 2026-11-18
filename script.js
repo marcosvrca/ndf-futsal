@@ -813,7 +813,12 @@
     const downloadBtn = document.getElementById("download-contrato");
     const built = buildContratoPdfWorker();
     if (!built) {
-      setStatus("Não foi possível gerar o PDF agora. Recarregue a página e tente de novo.");
+      setStatus(
+        "Falha ao montar o PDF: " +
+          (!window.html2pdf
+            ? "biblioteca html2pdf não carregou. Recarregue a página."
+            : "HTML do contrato indisponível.")
+      );
       return;
     }
 
@@ -826,7 +831,10 @@
       await built.worker.save();
     } catch (error) {
       console.error(error);
-      setStatus("Não foi possível baixar o contrato em PDF. Tente novamente.");
+      setStatus(
+        "Falha ao baixar o PDF: " +
+          (error && error.message ? error.message : String(error))
+      );
     } finally {
       built.wrapper.remove();
       if (downloadBtn) {
@@ -839,14 +847,27 @@
   /** Gera PDF do contrato preenchido e devolve base64 (sem prefixo data:). */
   async function generateContratoPdfBase64() {
     const built = buildContratoPdfWorker();
-    if (!built) return "";
+    if (!built) {
+      throw new Error(
+        !window.html2pdf
+          ? "Biblioteca html2pdf não carregou. Recarregue a página."
+          : "Não foi possível montar o HTML do contrato para PDF."
+      );
+    }
     try {
       const dataUri = await built.worker.outputPdf("datauristring");
       const comma = String(dataUri).indexOf(",");
-      return comma >= 0 ? String(dataUri).slice(comma + 1) : String(dataUri);
+      const b64 =
+        comma >= 0 ? String(dataUri).slice(comma + 1) : String(dataUri);
+      if (!b64 || b64.length < 64) {
+        throw new Error("PDF gerado vazio ou inválido (base64 curto).");
+      }
+      return b64;
     } catch (error) {
       console.error(error);
-      return "";
+      throw error instanceof Error
+        ? error
+        : new Error(String(error || "Falha desconhecida ao gerar PDF"));
     } finally {
       built.wrapper.remove();
     }
@@ -1179,10 +1200,11 @@
       contratoPdfBase64 = await generateContratoPdfBase64();
     } catch (error) {
       console.error(error);
-    }
-    if (!contratoPdfBase64) {
+      // Mantém formulário aberto (não marca sucesso) para retentar
       setStatus(
-        "Não foi possível gerar o PDF do contrato. Abra o contrato de novo, assine e tente enviar outra vez."
+        "Falha ao gerar o PDF do contrato: " +
+          (error && error.message ? error.message : String(error)) +
+          " Abra o contrato, confira a assinatura e tente de novo."
       );
       submitBtn.disabled = false;
       setButtonLabel(submitBtn, "Continuar");
@@ -1207,6 +1229,7 @@
       valor_total: plano.valorTotal,
       valor: formatBRL(plano.valorTotal),
       status_pagamento: "Pendente",
+      // Servidor só grava "Contrato ciente = Sim" depois do PDF no Drive
       contrato_ciente: true,
       contrato_assinado: true,
       uso_imagem: data.uso_imagem,
@@ -1251,10 +1274,21 @@
         throw new Error("HTTP " + response.status);
       }
 
+      // Só conclui se o servidor gravou E salvou o PDF (URL de Drive)
+      if (result && !result.contrato_pdf_url) {
+        throw new Error(
+          "Cadastro sem link do PDF no Drive. O contrato não foi confirmado — tente de novo."
+        );
+      }
+
       showSuccess(data, plano);
     } catch (error) {
       console.error(error);
-      setStatus("Não foi possível salvar na planilha. Confira a URL do Apps Script.");
+      // Formulário permanece — usuário pode retentar (status ainda não é “assinado” no sheet)
+      setStatus(
+        "Não foi possível concluir o cadastro: " +
+          (error && error.message ? error.message : String(error))
+      );
     } finally {
       submitBtn.disabled = false;
       setButtonLabel(submitBtn, "Continuar");

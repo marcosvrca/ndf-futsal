@@ -147,9 +147,15 @@ function doPost(e) {
       parcelas: result.parcelas,
       unidade: result.unidade,
       aba: result.aba,
+      contrato_pdf_url: result.contrato_pdf_url || "",
     });
   } catch (err) {
-    return json_({ success: false, message: String(err) });
+    // Mensagem real (ex.: falha Drive/PDF) — sem engolir o motivo
+    Logger.log("doPost erro: " + err);
+    return json_({
+      success: false,
+      message: String(err && err.message ? err.message : err),
+    });
   }
 }
 
@@ -550,8 +556,28 @@ function ensureHorarios_() {
   for (var i = 0; i < UNIDADE_ABAS.length; i++) {
     sheet.getRange(5 + i, 1).setValue(UNIDADE_ABAS[i]);
   }
-  sheet.getRange("A9").setValue("Pagamentos consolidados").setFontWeight("bold");
-  sheet.getRange("A10").setValue("A aba Pagamentos reúne todas as unidades, com a coluna Unidade.");
+
+  // Grade oficial COOP/FLAPALMAS (Segunda e Quarta — 906 Sul)
+  sheet.getRange("A9").setValue("COOP/FLAPALMAS — horários").setFontWeight("bold");
+  sheet.getRange("A10").setValue("Unidade");
+  sheet.getRange("B10").setValue("Dias");
+  sheet.getRange("C10").setValue("Horário");
+  sheet.getRange("D10").setValue("Turma");
+  sheet.getRange("E10").setValue("Local");
+  sheet.getRange(10, 1, 1, 5)
+    .setFontWeight("bold")
+    .setFontColor(COR_HEADER_FG)
+    .setBackground(COR_HEADER_BG);
+  var flapalmasHorarios = [
+    ["COOP/FLAPALMAS", "Segunda e Quarta", "14:00 às 15:00", "SUB8 e SUB9", "906 Sul"],
+    ["COOP/FLAPALMAS", "Segunda e Quarta", "15:00 às 16:00", "SUB10", "906 Sul"],
+    ["COOP/FLAPALMAS", "Segunda e Quarta", "16:00 às 17:20", "SUB11 e SUB12", "906 Sul"],
+  ];
+  sheet.getRange(11, 1, flapalmasHorarios.length, 5).setValues(flapalmasHorarios);
+
+  sheet.getRange("A15").setValue("Pagamentos consolidados").setFontWeight("bold");
+  sheet.getRange("A16").setValue("A aba Pagamentos reúne todas as unidades, com a coluna Unidade.");
+  sheet.setTabColor(COR_ACCENT);
   return sheet;
 }
 
@@ -619,50 +645,85 @@ function formaPagamento_(data, meses) {
 
 /**
  * Salva o PDF do contrato (base64) no Google Drive e devolve o link.
- * Se falhar, devolve mensagem na coluna Contrato PDF (cadastro NÃO é bloqueado).
+ * FALHA COM THROW — o cadastro NÃO deve gravar "ciente/assinado" sem PDF no Drive.
+ * Possíveis falhas: base64 vazio/inválido, pasta Drive, decode, createFile, quota.
  */
 function salvarContratoPdf_(data, cadastroId, unidadeNome) {
   var b64 = data.contrato_pdf_base64 || data.contrato_pdf || "";
   if (!b64) {
-    return "Sem PDF no envio (contrato_pdf_base64 vazio — gere o PDF no site antes de enviar)";
+    throw new Error(
+      "PDF do contrato ausente (contrato_pdf_base64 vazio). Gere o PDF no site e envie de novo."
+    );
   }
 
+  // Aceita data-URL ou base64 puro; remove espaços/quebras
+  b64 = String(b64)
+    .replace(/^data:application\/pdf;base64,/i, "")
+    .replace(/\s+/g, "");
+
+  if (!b64 || b64.length < 64) {
+    throw new Error(
+      "PDF do contrato inválido ou muito curto (base64 length=" + b64.length + ")."
+    );
+  }
+
+  var pasta;
   try {
-    // Aceita data-URL ou base64 puro; remove espaços/quebras
-    b64 = String(b64)
-      .replace(/^data:application\/pdf;base64,/i, "")
-      .replace(/\s+/g, "");
-
-    var pasta = getOrCreateFolder_(PASTA_CONTRATOS);
-    var aluno = String(data.aluno_nome || data.nome || "aluno")
-      .replace(/[\\/:*?"<>|]+/g, " ")
-      .replace(/\s+/g, " ")
-      .trim()
-      .slice(0, 60);
-    var nomeArquivo =
-      (cadastroId || "CAD") +
-      " - " +
-      String(unidadeNome || "Unidade").replace(/[\\/:*?"<>|]+/g, "-") +
-      " - " +
-      aluno +
-      ".pdf";
-
-    var bytes = Utilities.base64Decode(b64);
-    var blob = Utilities.newBlob(bytes, MimeType.PDF, nomeArquivo);
-    var file = pasta.createFile(blob);
-
-    // Compartilhamento é opcional — não pode impedir o save do arquivo
-    try {
-      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    } catch (shareErr) {
-      Logger.log("Aviso sharing PDF: " + shareErr);
-    }
-
-    return file.getUrl();
-  } catch (err) {
-    Logger.log("Erro salvarContratoPdf_: " + err);
-    return "Erro ao salvar PDF: " + String(err);
+    pasta = getOrCreateFolder_(PASTA_CONTRATOS);
+  } catch (folderErr) {
+    throw new Error(
+      "Falha ao acessar/criar pasta Drive \"" + PASTA_CONTRATOS + "\": " + String(folderErr)
+    );
   }
+
+  var aluno = String(data.aluno_nome || data.nome || "aluno")
+    .replace(/[\\/:*?"<>|]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 60);
+  var nomeArquivo =
+    (cadastroId || "CAD") +
+    " - " +
+    String(unidadeNome || "Unidade").replace(/[\\/:*?"<>|]+/g, "-") +
+    " - " +
+    aluno +
+    ".pdf";
+
+  var bytes;
+  try {
+    bytes = Utilities.base64Decode(b64);
+  } catch (decodeErr) {
+    throw new Error("Falha ao decodificar PDF (base64Decode): " + String(decodeErr));
+  }
+
+  var blob;
+  try {
+    blob = Utilities.newBlob(bytes, MimeType.PDF, nomeArquivo);
+  } catch (blobErr) {
+    throw new Error("Falha ao criar blob PDF: " + String(blobErr));
+  }
+
+  var file;
+  try {
+    file = pasta.createFile(blob);
+  } catch (createErr) {
+    throw new Error(
+      "Falha ao salvar PDF no Drive (createFile): " + String(createErr)
+    );
+  }
+
+  // Compartilhamento é opcional — não pode impedir o save do arquivo
+  try {
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  } catch (shareErr) {
+    Logger.log("Aviso sharing PDF: " + shareErr);
+  }
+
+  var url = file.getUrl();
+  if (!url) {
+    throw new Error("PDF criado no Drive mas getUrl() retornou vazio.");
+  }
+  return url;
 }
 
 function getOrCreateFolder_(nome) {
@@ -726,9 +787,8 @@ function registrarInscricao_(data) {
   var vParcela = valorParcela_(data, meses);
   var vTotal = valorTotal_(data, vParcela, meses);
   var id = nextCadastroId_(cadSheet);
-  var ciente = data.contrato_ciente === true || data.contrato_ciente === "true" || data.contrato_ciente === "Sim"
-    ? "Sim"
-    : "Não";
+  // "Contrato ciente" só vira Sim depois do PDF salvo no Drive (abaixo).
+  var ciente = "Não";
   var local = data.local || "";
   var dias = data.dias || "";
   var horario = data.horario || "";
@@ -740,7 +800,12 @@ function registrarInscricao_(data) {
   var idade = data.idade !== undefined && data.idade !== ""
     ? data.idade
     : idadeFromNascimento_(nascimento);
+
+  // PDF no Drive ANTES de gravar o cadastro como ciente/assinado.
+  // Se falhar, lança erro → doPost success:false → nada é gravado → usuário pode retentar.
   var contratoUrl = salvarContratoPdf_(data, id, unidadeNome);
+  // Só marca "Sim" depois do PDF salvo com sucesso
+  ciente = "Sim";
 
   var obsBase = forma === "Mensal"
     ? "Mensalidade do mês (" + planoLabel + ")"
@@ -825,5 +890,6 @@ function registrarInscricao_(data) {
     forma_pagamento: forma,
     valor_total: vTotal,
     valor_parcela: vParcela,
+    contrato_pdf_url: contratoUrl,
   };
 }
