@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import os
 from collections import Counter
+from datetime import date, datetime
 from functools import lru_cache, wraps
 from typing import Any, Callable
 
@@ -13,7 +14,7 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "ndf-futsal-dashboard-session-key")
 
 AUTH_USER = "marcos.farias@mail.uft.edu.br"
-AUTH_PASS = "NDF-futsal@2016"
+AUTH_PASS = "Ndffutsal@2026"
 UNIDADE_ABAS = ("COOP Futsal", "COOP/FLAPALMAS", "Monteiro Lobato Futsal")
 
 THEME_BOOT = """
@@ -141,168 +142,262 @@ html[data-theme="contrast"] .err{border-radius:0;border-color:#ffff00}
 
 PAGE = """<!DOCTYPE html><html lang="pt-BR" data-theme="light"><head><meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Dashboard · TUDO SOBRE FUTSAL</title>
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Manrope:wght@600;800&display=swap" rel="stylesheet"/>
+<title>Painel gerencial · TUDO SOBRE FUTSAL</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js" defer></script>
 """ + THEME_BOOT + """
 <style>
 """ + THEME_CSS + """
-*{box-sizing:border-box}body{margin:0;font-family:Manrope,system-ui,sans-serif;color:var(--ink);background:var(--bg);padding:2rem 1.25rem 3rem}
-.wrap{max-width:1100px;margin:0 auto}
+*{box-sizing:border-box}body{margin:0;font-family:Manrope,system-ui,sans-serif;color:var(--ink);background:var(--bg);padding:1.5rem 1.1rem 3rem}
+.wrap{max-width:1180px;margin:0 auto}
 .top-row{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap}
 .top-row .theme-bar{margin:0}
-h1{font-family:"Archivo Black",sans-serif;color:var(--g);margin:.2rem 0}
+h1{font-family:"Archivo Black",sans-serif;color:var(--g);margin:.15rem 0 0;font-size:clamp(1.55rem,3.4vw,2.35rem)}
 .eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:.72rem;font-weight:800;color:var(--m);margin:0}
-.lead{color:var(--muted)}
-.logout{color:var(--m);font-size:.85rem;font-weight:800}
+.sub{margin:.35rem 0 0;color:var(--muted);font-size:.92rem}
+.meta{display:flex;flex-wrap:wrap;gap:.55rem;align-items:center;margin:.85rem 0 0}
 .badge{display:inline-flex;padding:.3rem .7rem;border-radius:999px;font-size:.72rem;font-weight:800;border:1px solid transparent}
 html[data-theme="contrast"] .badge{border-radius:0;border-color:#ffff00}
 .badge-demo{background:var(--pend);color:var(--ink)}.badge-live{background:var(--pago);color:var(--ink)}
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;margin:1rem 0}
-.kpi,.panel,.chart-box{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:1rem;box-shadow:var(--shadow)}
-.kpi b{display:block;color:var(--muted);font-size:.75rem}.kpi span{font-size:1.35rem;font-weight:800;color:var(--g)}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
-.panel h2,.chart-box h2{margin:0 0 .7rem;font-size:1rem;color:var(--g)}
-ul{list-style:none;margin:0;padding:0}li{display:flex;justify-content:space-between;padding:.5rem 0;border-top:1px solid var(--line);color:var(--ink)}
-li:first-child{border:0}li strong{color:var(--g)}
-table{width:100%;border-collapse:collapse;font-size:.92rem}th,td{text-align:left;padding:.5rem;border-bottom:1px solid var(--line);color:var(--ink)}
-th{color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.04em}
-.charts{display:grid;grid-template-columns:1.2fr 1fr;gap:.8rem;margin:1rem 0}
-.chart-box{padding:1rem 1rem .6rem;min-height:280px}
-.chart-box h2{margin:0 0 .4rem;font-size:.95rem}
-.chart-box canvas{max-height:230px}
+.logout{color:var(--m);font-size:.85rem;font-weight:800}
+.filters{display:flex;flex-wrap:wrap;gap:.7rem;margin:1rem 0;padding:1rem;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.filters label{display:flex;flex-direction:column;gap:.3rem;font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.filters select{min-width:160px;padding:.55rem .7rem;border:1px solid var(--input-border);border-radius:10px;background:var(--input-bg);color:var(--ink);font:inherit;font-weight:700}
+html[data-theme="contrast"] .filters select{border-radius:0}
+.filters button{align-self:end;border:0;border-radius:10px;padding:.65rem 1rem;font:inherit;font-weight:800;color:var(--btn-text);background:linear-gradient(135deg,var(--g),var(--m));cursor:pointer}
+html[data-theme="contrast"] .filters button{border-radius:0;background:#ffff00;color:#000;border:1px solid #ffff00}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;margin:0 0 1rem}
+.kpi,.panel,.chart-box,.alert-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:1rem;box-shadow:var(--shadow)}
+.kpi b{display:block;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em}.kpi span{display:block;margin-top:.35rem;font-size:clamp(1.15rem,2.3vw,1.55rem);font-weight:800;color:var(--g)}
+.kpi small{display:block;margin-top:.25rem;color:var(--muted);font-size:.78rem;font-weight:700}
+.kpi--warn span{color:#b45309}html[data-theme="dark"] .kpi--warn span{color:#fbbf24}html[data-theme="contrast"] .kpi--warn span{color:#ffff00}
+.charts{display:grid;grid-template-columns:1.25fr 1fr;gap:.8rem;margin:0 0 1rem}
+.charts-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.8rem;margin:0 0 1rem}
+.chart-box{min-height:270px;padding:1rem 1rem .55rem}
+.chart-box h2,.panel h2,.alert-card h2{margin:0 0 .55rem;font-size:.95rem;color:var(--g)}
+.chart-box canvas{max-height:210px}
 .charts-wide{grid-column:1/-1}
-@media(max-width:860px){.kpis,.grid,.charts{grid-template-columns:1fr}}
+.grid{display:grid;grid-template-columns:1.4fr .8fr;gap:.8rem;margin:0 0 1rem}
+.alerts{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin:0 0 1rem}
+.alert-card strong{display:block;font-size:1.6rem;color:var(--g);margin:.2rem 0}
+.alert-card p{margin:0;color:var(--muted);font-size:.85rem;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:.9rem}th,td{text-align:left;padding:.55rem .4rem;border-bottom:1px solid var(--line);color:var(--ink)}
+th{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em}
+.status{display:inline-flex;padding:.15rem .45rem;border-radius:999px;font-size:.72rem;font-weight:800;background:var(--pend)}
+.status--pago{background:var(--pago)}html[data-theme="contrast"] .status{border:1px solid #ffff00;border-radius:0}
+.empty{color:var(--muted);font-weight:700;padding:.4rem 0}
+@media(max-width:960px){.kpis,.charts,.charts-3,.grid,.alerts{grid-template-columns:1fr}}
 </style></head><body><div class="wrap">
 <div class="top-row">
   <div>
-    <p class="eyebrow">Minha Quadra · painel interno</p>
+    <p class="eyebrow">Painel gerencial · visão geral</p>
     <h1>TUDO SOBRE FUTSAL</h1>
+    <p class="sub">{{ data.message }}</p>
+    <div class="meta">
+      <span class="badge {{ 'badge-live' if data.mode=='live' else 'badge-demo' }}">{{ 'AO VIVO' if data.mode=='live' else 'DEMO' }}</span>
+      <a class="logout" href="{{ url_for('logout') }}">Sair</a>
+    </div>
   </div>
 """ + THEME_SWITCH + """
 </div>
-<p class="lead">{{ data.message }}</p>
-<span class="badge {{ 'badge-live' if data.mode=='live' else 'badge-demo' }}">{{ 'AO VIVO' if data.mode=='live' else 'DEMO' }}</span>
-<p style="margin:.7rem 0 0"><a class="logout" href="{{ url_for('logout') }}">Sair</a></p>
-<section class="kpis">
-<article class="kpi"><b>Parcelas</b><span>{{ data.kpis.parcelas }}</span></article>
-<article class="kpi"><b>Valor total</b><span>{{ data.kpis.valor_total|brl }}</span></article>
-<article class="kpi"><b>Pendente</b><span>{{ data.kpis.pendente|brl }}</span></article>
-<article class="kpi"><b>Pago</b><span>{{ data.kpis.pago|brl }}</span></article>
+
+<form class="filters" method="get" action="/">
+  <label>Período
+    <select name="periodo">
+      {% for opt in data.periodos %}
+      <option value="{{ opt }}" {% if opt==data.filtros.periodo %}selected{% endif %}>{{ opt }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Unidade
+    <select name="unidade">
+      <option value="todas" {% if data.filtros.unidade=='todas' %}selected{% endif %}>Todas</option>
+      {% for u in data.unidades %}
+      <option value="{{ u }}" {% if data.filtros.unidade==u %}selected{% endif %}>{{ u }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <button type="submit">Aplicar</button>
+</form>
+
+<section class="kpis" aria-label="Indicadores">
+  <article class="kpi"><b>Alunos ativos</b><span>{{ data.kpis.alunos_ativos }}</span><small>Matrículas vigentes</small></article>
+  <article class="kpi"><b>Novos cadastros</b><span>{{ data.kpis.novos_cadastros }}</span><small>No período {{ data.filtros.periodo }}</small></article>
+  <article class="kpi"><b>Valor recebido</b><span>{{ data.kpis.recebido|brl }}</span><small>Pagamentos confirmados</small></article>
+  <article class="kpi kpi--warn"><b>Em atraso</b><span>{{ data.kpis.vencido|brl }}</span><small>Pendente: {{ data.kpis.pendente|brl }}</small></article>
+  <article class="kpi"><b>Parcelas do período</b><span>{{ data.kpis.parcelas }}</span><small>Previsto: {{ data.kpis.previsto|brl }}</small></article>
+  <article class="kpi"><b>Inadimplentes</b><span>{{ data.kpis.inadimplentes }}</span><small>Alunos com vencidas</small></article>
+  <article class="kpi"><b>Ticket médio</b><span>{{ data.kpis.ticket_medio|brl }}</span><small>Valor médio da parcela</small></article>
+  <article class="kpi"><b>Taxa de recebimento</b><span>{{ data.kpis.taxa_recebimento }}%</span><small>Recebido ÷ previsto</small></article>
 </section>
-<section class="charts" aria-label="Gráficos">
+
+<section class="charts" aria-label="Visão geral">
   <div class="chart-box charts-wide">
-    <h2>Cadastros ao longo do tempo</h2>
+    <h2>Evolução de matrículas</h2>
     <canvas id="chartTempo" height="90"></canvas>
   </div>
   <div class="chart-box">
-    <h2>Por unidade</h2>
+    <h2>Alunos por unidade</h2>
     <canvas id="chartUnidade"></canvas>
   </div>
   <div class="chart-box">
-    <h2>Por plano / forma</h2>
-    <canvas id="chartPlano"></canvas>
+    <h2>Situação das parcelas</h2>
+    <canvas id="chartStatus"></canvas>
   </div>
 </section>
-<section class="grid">
-<div class="panel"><h2>Cadastros</h2><ul>{% for u,q in data.cadastros_por_unidade.items() %}<li><span>{{ u }}</span><strong>{{ q }}</strong></li>{% endfor %}</ul></div>
-<div class="panel"><h2>Pagamentos</h2><ul>{% for row in data.por_unidade %}<li><span>{{ row.unidade }}</span><strong>{{ row.valor|brl }}</strong></li>{% endfor %}</ul></div>
+
+<section class="charts-3" aria-label="Distribuição">
+  <div class="chart-box">
+    <h2>Faixa etária</h2>
+    <canvas id="chartIdade"></canvas>
+  </div>
+  <div class="chart-box">
+    <h2>Alunos por turma</h2>
+    <canvas id="chartTurma"></canvas>
+  </div>
+  <div class="chart-box">
+    <h2>Forma de pagamento</h2>
+    <canvas id="chartForma"></canvas>
+  </div>
 </section>
-<div class="panel" style="margin-top:.8rem"><h2>Recentes</h2>
-<table><thead><tr><th>Unidade</th><th>Nome</th><th>Valor</th><th>Status</th></tr></thead>
-<tbody>{% for row in data.pagamentos_recentes %}<tr><td>{{ row.unidade }}</td><td>{{ row.nome }}</td><td>{{ row.valor|brl }}</td><td>{{ row.status }}</td></tr>{% endfor %}</tbody></table>
-</div>
+
+<section class="alerts" aria-label="Pendências">
+  <div class="alert-card"><h2>Inadimplentes</h2><strong>{{ data.kpis.inadimplentes }}</strong><p>Alunos com parcelas vencidas</p></div>
+  <div class="alert-card"><h2>Contratos pendentes</h2><strong>{{ data.kpis.contratos_pendentes }}</strong><p>Sem confirmação de ciência</p></div>
+  <div class="alert-card"><h2>Autorizações pendentes</h2><strong>{{ data.kpis.autorizacoes_pendentes }}</strong><p>Uso de imagem sem OK</p></div>
+</section>
+
+<section class="grid">
+  <div class="panel">
+    <h2>Atenção financeira · alunos inadimplentes</h2>
+    {% if data.inadimplentes %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Aluno</th><th>Unidade</th><th>Parcelas</th><th>Valor</th></tr></thead>
+        <tbody>
+        {% for row in data.inadimplentes %}
+          <tr>
+            <td>{{ row.nome }}</td>
+            <td>{{ row.unidade }}</td>
+            <td>{{ row.qtd }}</td>
+            <td>{{ row.valor|brl }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="empty">Nenhum aluno com parcela vencida no filtro atual.</p>
+    {% endif %}
+  </div>
+  <div class="panel">
+    <h2>Recebido por unidade</h2>
+    <ul style="list-style:none;margin:0;padding:0">
+      {% for row in data.por_unidade %}
+      <li style="display:flex;justify-content:space-between;padding:.55rem 0;border-top:1px solid var(--line)">
+        <span>{{ row.unidade }} · {{ row.qtd }} pagas</span>
+        <strong style="color:var(--g)">{{ row.valor|brl }}</strong>
+      </li>
+      {% else %}
+      <li class="empty">Sem pagamentos no período.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+
 <script id="chart-data" type="application/json">{{ data.charts|tojson }}</script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof Chart === 'undefined') return;
-  const raw = document.getElementById('chart-data');
-  const charts = raw ? JSON.parse(raw.textContent || '{}') : {};
-  let chartTempo, chartUnidade, chartPlano;
+  const charts = JSON.parse(document.getElementById('chart-data').textContent || '{}');
+  const store = {};
 
   function palette(theme) {
     if (theme === 'dark') {
       return {
-        green: '#34d399', mid: '#6ee7b7', gold: '#e3c878',
-        soft: ['#34d399','#6ee7b7','#2dd4bf','#e3c878','#94a3b8','#22c55e'],
-        fill: 'rgba(52,211,153,.15)', grid: 'rgba(148,163,184,.2)', tick: '#94a3b8',
+        green:'#34d399', mid:'#6ee7b7', gold:'#e3c878', danger:'#fb7185',
+        soft:['#34d399','#6ee7b7','#2dd4bf','#e3c878','#94a3b8','#22c55e','#38bdf8'],
+        fill:'rgba(52,211,153,.15)', grid:'rgba(148,163,184,.2)', tick:'#94a3b8'
       };
     }
     if (theme === 'contrast') {
       return {
-        green: '#ffff00', mid: '#ffff00', gold: '#ffffff',
-        soft: ['#ffff00','#ffffff','#00ffff','#ff00ff','#00ff00','#ffaa00'],
-        fill: 'rgba(255,255,0,.2)', grid: '#ffff00', tick: '#ffffff',
+        green:'#ffff00', mid:'#ffff00', gold:'#ffffff', danger:'#ff00ff',
+        soft:['#ffff00','#ffffff','#00ffff','#ff00ff','#00ff00','#ffaa00','#66ff66'],
+        fill:'rgba(255,255,0,.2)', grid:'#ffff00', tick:'#ffffff'
       };
     }
     return {
-      green: '#0f3d2e', mid: '#1a5c44', gold: '#c4a35a',
-      soft: ['#0f3d2e','#1a5c44','#4a7c59','#c4a35a','#8b7355','#2f6b52'],
-      fill: 'rgba(15,61,46,.12)', grid: '#d5e3db', tick: '#4d6359',
+      green:'#0f3d2e', mid:'#1a5c44', gold:'#c4a35a', danger:'#b45309',
+      soft:['#0f3d2e','#1a5c44','#4a7c59','#c4a35a','#8b7355','#2f6b52','#0ea5e9'],
+      fill:'rgba(15,61,46,.12)', grid:'#d5e3db', tick:'#4d6359'
     };
+  }
+
+  function mk(id, conf) {
+    if (store[id]) store[id].destroy();
+    const el = document.getElementById(id);
+    if (!el) return;
+    store[id] = new Chart(el, conf);
   }
 
   function renderCharts() {
     const theme = document.documentElement.getAttribute('data-theme') || 'light';
     const p = palette(theme);
     const common = {
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: { legend: { labels: { color: p.tick, font: { family: 'Manrope' } } } },
-      scales: {
-        x: { ticks: { color: p.tick }, grid: { color: p.grid } },
-        y: { ticks: { color: p.tick }, grid: { color: p.grid } },
-      },
+      responsive:true, maintainAspectRatio:true,
+      plugins:{legend:{labels:{color:p.tick, font:{family:'Manrope'}}}},
+      scales:{
+        x:{ticks:{color:p.tick}, grid:{color:p.grid}},
+        y:{ticks:{color:p.tick, precision:0}, grid:{color:p.grid}, beginAtZero:true}
+      }
     };
+    const doughnut = {
+      responsive:true, maintainAspectRatio:true,
+      plugins:{legend:{position:'bottom', labels:{color:p.tick, font:{family:'Manrope', size:11}}}}
+    };
+    const contrastBorder = theme === 'contrast' ? 2 : 0;
 
-    if (chartTempo) chartTempo.destroy();
-    if (chartUnidade) chartUnidade.destroy();
-    if (chartPlano) chartPlano.destroy();
-
-    const tempo = charts.tempo || { labels: [], values: [] };
-    chartTempo = new Chart(document.getElementById('chartTempo'), {
-      type: 'line',
-      data: {
-        labels: tempo.labels,
-        datasets: [{
-          label: 'Cadastros',
-          data: tempo.values,
-          borderColor: p.green,
-          backgroundColor: p.fill,
-          fill: true,
-          tension: .35,
-          pointRadius: 3,
-          pointBackgroundColor: p.gold,
-        }]
-      },
-      options: { ...common, scales: { ...common.scales, y: { ...common.scales.y, beginAtZero: true, ticks: { ...common.scales.y.ticks, precision: 0 } } } }
+    const tempo = charts.tempo || {labels:[], values:[]};
+    mk('chartTempo', {
+      type:'line',
+      data:{labels:tempo.labels, datasets:[{label:'Novos cadastros', data:tempo.values, borderColor:p.green, backgroundColor:p.fill, fill:true, tension:.35, pointRadius:3, pointBackgroundColor:p.gold}]},
+      options:common
     });
 
-    const unidade = charts.unidade || { labels: [], values: [] };
-    chartUnidade = new Chart(document.getElementById('chartUnidade'), {
-      type: 'doughnut',
-      data: {
-        labels: unidade.labels,
-        datasets: [{ data: unidade.values, backgroundColor: p.soft.slice(0, unidade.labels.length), borderWidth: theme === 'contrast' ? 2 : 0, borderColor: '#000' }]
-      },
-      options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: p.tick, font: { family: 'Manrope' } } } } }
+    const unidade = charts.unidade || {labels:[], values:[]};
+    mk('chartUnidade', {
+      type:'doughnut',
+      data:{labels:unidade.labels, datasets:[{data:unidade.values, backgroundColor:p.soft.slice(0, unidade.labels.length), borderWidth:contrastBorder, borderColor:'#000'}]},
+      options:doughnut
     });
 
-    const plano = charts.plano || { labels: [], values: [] };
-    chartPlano = new Chart(document.getElementById('chartPlano'), {
-      type: 'bar',
-      data: {
-        labels: plano.labels,
-        datasets: [{
-          label: 'Parcelas',
-          data: plano.values,
-          backgroundColor: p.mid,
-          borderRadius: theme === 'contrast' ? 0 : 8,
-          borderWidth: theme === 'contrast' ? 2 : 0,
-          borderColor: '#ffff00',
-        }]
-      },
-      options: { ...common, plugins: { legend: { display: false } }, scales: { ...common.scales, y: { ...common.scales.y, beginAtZero: true, ticks: { ...common.scales.y.ticks, precision: 0 } } } }
+    const status = charts.status || {labels:[], values:[]};
+    mk('chartStatus', {
+      type:'doughnut',
+      data:{labels:status.labels, datasets:[{data:status.values, backgroundColor:[p.green, p.gold, p.danger].slice(0, status.labels.length), borderWidth:contrastBorder, borderColor:'#000'}]},
+      options:doughnut
+    });
+
+    const idade = charts.idade || {labels:[], values:[]};
+    mk('chartIdade', {
+      type:'bar',
+      data:{labels:idade.labels, datasets:[{label:'Alunos', data:idade.values, backgroundColor:p.mid, borderRadius: theme==='contrast'?0:8, borderWidth:contrastBorder, borderColor:'#ffff00'}]},
+      options:{...common, plugins:{legend:{display:false}}}
+    });
+
+    const turma = charts.turma || {labels:[], values:[]};
+    mk('chartTurma', {
+      type:'bar',
+      data:{labels:turma.labels, datasets:[{label:'Alunos', data:turma.values, backgroundColor:p.green, borderRadius: theme==='contrast'?0:8, borderWidth:contrastBorder, borderColor:'#ffff00'}]},
+      options:{...common, plugins:{legend:{display:false}}}
+    });
+
+    const forma = charts.forma || {labels:[], values:[]};
+    mk('chartForma', {
+      type:'doughnut',
+      data:{labels:forma.labels, datasets:[{data:forma.values, backgroundColor:p.soft.slice(0, forma.labels.length), borderWidth:contrastBorder, borderColor:'#000'}]},
+      options:doughnut
     });
   }
 
@@ -312,7 +407,6 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 """ + THEME_SCRIPT + """
 </div></body></html>"""
-
 
 def brl(value: float) -> str:
     try:
@@ -325,39 +419,125 @@ def brl(value: float) -> str:
 app.jinja_env.filters["brl"] = brl
 
 
-def _demo_charts() -> dict[str, Any]:
-    return {
-        "tempo": {
-            "labels": ["Jun", "Jul", "Ago", "Set", "Out", "Nov"],
-            "values": [2, 4, 3, 6, 5, 8],
-        },
-        "unidade": {
-            "labels": list(UNIDADE_ABAS),
-            "values": [8, 9, 6],
-        },
-        "plano": {
-            "labels": ["À vista", "5x", "8x", "10x", "Mensal"],
-            "values": [6, 10, 8, 12, 6],
-        },
-    }
+def _truthy_flag(value: Any) -> bool:
+    text = str(value or "").strip().lower()
+    return text in {"sim", "yes", "true", "1", "ok", "ciente", "autorizado"}
 
 
-def demo_payload() -> dict[str, Any]:
+def _parse_date(value: Any) -> date | None:
+    if value is None or value == "":
+        return None
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    text = str(value).strip()
+    for fmt in ("%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y", "%Y/%m/%d"):
+        try:
+            return datetime.strptime(text[:10], fmt).date()
+        except ValueError:
+            continue
+    if "T" in text:
+        try:
+            return datetime.fromisoformat(text.replace("Z", "+00:00")).date()
+        except ValueError:
+            return None
+    return None
+
+
+def _parse_month(value: Any) -> str:
+    """Return YYYY-MM when possible."""
+    text = str(value or "").strip()
+    if len(text) >= 7 and text[4] == "-":
+        return text[:7]
+    dt = _parse_date(value)
+    if dt:
+        return dt.strftime("%Y-%m")
+    # Competência like 11/2026
+    if "/" in text:
+        parts = text.split("/")
+        if len(parts) == 2 and parts[0].isdigit() and parts[1].isdigit():
+            return f"{int(parts[1]):04d}-{int(parts[0]):02d}"
+    return ""
+
+
+def _age_band(idade: Any) -> str:
+    try:
+        n = int(float(str(idade).replace(",", ".")))
+    except (TypeError, ValueError):
+        return "Sem idade"
+    if n <= 6:
+        return "Até 6"
+    if n <= 9:
+        return "7–9"
+    if n <= 12:
+        return "10–12"
+    if n <= 15:
+        return "13–15"
+    return "16+"
+
+
+def _is_active_status(status: Any) -> bool:
+    text = str(status or "").strip().lower()
+    if not text:
+        return True
+    return text not in {"cancelado", "inativo", "encerrado", "baixado"}
+
+
+def _is_pago(status: Any) -> bool:
+    return str(status or "").strip().lower() in {"pago", "isento"}
+
+
+def _is_pendente(status: Any) -> bool:
+    return str(status or "").strip().lower() == "pendente"
+
+
+def _full_name(row: dict[str, Any]) -> str:
+    aluno = str(row.get("Nome do aluno") or "").strip()
+    if aluno:
+        return aluno
+    return f"{row.get('Nome') or ''} {row.get('Sobrenome') or ''}".strip() or "—"
+
+
+def _demo_payload(periodo: str, unidade: str) -> dict[str, Any]:
     return {
         "mode": "demo",
         "message": "Configure GOOGLE_SHEETS_ID + service account para ler a planilha real.",
-        "kpis": {"parcelas": 42, "valor_total": 18480.0, "pendente": 9200.0, "pago": 8200.0},
+        "filtros": {"periodo": periodo or "2026-11", "unidade": unidade or "todas"},
+        "periodos": ["2026-11", "2026-10", "2026-09"],
+        "unidades": list(UNIDADE_ABAS),
+        "kpis": {
+            "alunos_ativos": 248,
+            "novos_cadastros": 32,
+            "recebido": 12450.0,
+            "pendente": 3200.0,
+            "vencido": 2350.0,
+            "previsto": 15650.0,
+            "parcelas": 180,
+            "inadimplentes": 18,
+            "ticket_medio": 85.0,
+            "taxa_recebimento": 80,
+            "contratos_pendentes": 7,
+            "autorizacoes_pendentes": 12,
+        },
         "por_unidade": [
-            {"unidade": "COOP Futsal", "qtd": 14, "valor": 6160.0},
-            {"unidade": "COOP/FLAPALMAS", "qtd": 16, "valor": 7040.0},
-            {"unidade": "Monteiro Lobato Futsal", "qtd": 12, "valor": 5280.0},
+            {"unidade": "COOP Futsal", "qtd": 14, "valor": 5200.0},
+            {"unidade": "COOP/FLAPALMAS", "qtd": 16, "valor": 4300.0},
+            {"unidade": "Monteiro Lobato Futsal", "qtd": 12, "valor": 2950.0},
         ],
-        "cadastros_por_unidade": {"COOP Futsal": 8, "COOP/FLAPALMAS": 9, "Monteiro Lobato Futsal": 6},
-        "pagamentos_recentes": [
-            {"unidade": "COOP Futsal", "nome": "Ana Silva", "valor": 220.0, "status": "Pendente"},
-            {"unidade": "COOP/FLAPALMAS", "nome": "Bruno Costa", "valor": 432.0, "status": "Pago"},
+        "inadimplentes": [
+            {"nome": "Aluno A", "unidade": "COOP Futsal", "qtd": 2, "valor": 170.0},
+            {"nome": "Aluno B", "unidade": "Monteiro Lobato Futsal", "qtd": 1, "valor": 85.0},
+            {"nome": "Aluno C", "unidade": "COOP/FLAPALMAS", "qtd": 3, "valor": 255.0},
         ],
-        "charts": _demo_charts(),
+        "charts": {
+            "tempo": {"labels": ["Jun", "Jul", "Ago", "Set", "Out", "Nov"], "values": [12, 18, 15, 22, 27, 32]},
+            "unidade": {"labels": list(UNIDADE_ABAS), "values": [90, 86, 72]},
+            "status": {"labels": ["Pagas", "Pendentes", "Vencidas"], "values": [140, 22, 18]},
+            "idade": {"labels": ["Até 6", "7–9", "10–12", "13–15", "16+"], "values": [28, 64, 82, 54, 20]},
+            "turma": {"labels": ["Sub-9", "Sub-11", "Sub-13", "Sub-15"], "values": [40, 55, 48, 36]},
+            "forma": {"labels": ["PIX", "Cartão", "Dinheiro"], "values": [58, 30, 12]},
+        },
     }
 
 
@@ -418,116 +598,184 @@ def _safe_records(title: str) -> list[dict[str, Any]]:
         return []
 
 
-def _safe_values(title: str) -> list[list[Any]]:
-    try:
-        return _open().worksheet(title).get_all_values()
-    except Exception:
-        return []
-
-
-def _build_charts(
-    cadastros_por_unidade: dict[str, int],
-    pagamentos: list[dict[str, Any]],
-    cadastro_rows: list[dict[str, Any]],
-) -> dict[str, Any]:
-    # Signups over time from cadastro Data/Hora when present; else competências from Pagamentos
-    tempo_counter: Counter[str] = Counter()
-    for row in cadastro_rows:
-        raw = str(row.get("Data/Hora") or row.get("Data") or "")
-        label = raw[:7] if len(raw) >= 7 else ""
-        if not label and row.get("Competência"):
-            label = str(row.get("Competência"))
-        if label:
-            tempo_counter[label] += 1
-    if not tempo_counter:
-        for row in pagamentos:
-            comp = str(row.get("Competência") or row.get("Competencia") or "").strip()
-            if comp:
-                tempo_counter[comp] += 1
-    tempo_labels = sorted(tempo_counter.keys())[-8:]
-    tempo_values = [tempo_counter[k] for k in tempo_labels]
-
-    unidade_labels = list(cadastros_por_unidade.keys()) or list(UNIDADE_ABAS)
-    unidade_values = [int(cadastros_por_unidade.get(u, 0)) for u in unidade_labels]
-
-    plano_counter: Counter[str] = Counter()
-    for row in pagamentos:
-        forma = str(
-            row.get("Periodicidade")
-            or row.get("Forma de pagamento")
-            or row.get("Plano")
-            or "Outros"
-        ).strip() or "Outros"
-        plano_counter[forma] += 1
-    if not plano_counter:
-        for row in cadastro_rows:
-            forma = str(row.get("Forma de pagamento") or row.get("Plano") or "Outros").strip() or "Outros"
-            plano_counter[forma] += 1
-    plano_items = plano_counter.most_common(8)
-
-    return {
-        "tempo": {"labels": tempo_labels, "values": tempo_values},
-        "unidade": {"labels": unidade_labels, "values": unidade_values},
-        "plano": {
-            "labels": [k for k, _ in plano_items],
-            "values": [v for _, v in plano_items],
-        },
-    }
+def _match_unidade(row_unidade: Any, filtro: str) -> bool:
+    if not filtro or filtro == "todas":
+        return True
+    return str(row_unidade or "").strip() == filtro
 
 
 def load_dashboard() -> dict[str, Any]:
+    today = date.today()
+    periodo = (request.args.get("periodo") or today.strftime("%Y-%m")).strip()
+    unidade = (request.args.get("unidade") or "todas").strip() or "todas"
+
     if not configured():
-        return demo_payload()
-    resumo_values = _safe_values(os.getenv("SHEET_RESUMO", "Resumo"))
+        return _demo_payload(periodo, unidade)
+
     pagamentos = _safe_records(os.getenv("SHEET_PAGAMENTOS", "Pagamentos"))
-    kpis = {"parcelas": 0, "valor_total": 0.0, "pendente": 0.0, "pago": 0.0}
-    labels = {
-        "Parcelas (linhas)": "parcelas",
-        "Valor total": "valor_total",
-        "Pendente": "pendente",
-        "Pago": "pago",
-    }
-    for row in resumo_values:
-        if len(row) < 2:
+    cadastro_rows: list[dict[str, Any]] = []
+    for aba in UNIDADE_ABAS:
+        for row in _safe_records(aba):
+            row = dict(row)
+            row.setdefault("Unidade", aba)
+            cadastro_rows.append(row)
+
+    cadastros_f = [r for r in cadastro_rows if _match_unidade(r.get("Unidade"), unidade)]
+    pagamentos_f = [r for r in pagamentos if _match_unidade(r.get("Unidade"), unidade)]
+
+    ativos = [r for r in cadastros_f if _is_active_status(r.get("Status"))]
+    novos = []
+    for r in cadastros_f:
+        month = _parse_month(r.get("Data/Hora") or r.get("Data"))
+        if month == periodo:
+            novos.append(r)
+
+    # Period payments by competência
+    pag_periodo = []
+    for r in pagamentos_f:
+        comp = _parse_month(r.get("Competência") or r.get("Competencia") or f"{r.get('Ano')}-{r.get('Mês')}")
+        if not comp and r.get("Mês") and r.get("Ano"):
+            try:
+                comp = f"{int(r.get('Ano')):04d}-{int(r.get('Mês')):02d}"
+            except (TypeError, ValueError):
+                comp = ""
+        r = dict(r)
+        r["_competencia"] = comp
+        if comp == periodo or not periodo:
+            pag_periodo.append(r)
+
+    recebido = sum(_num(r.get("Valor")) for r in pag_periodo if _is_pago(r.get("Status")))
+    pendente = sum(_num(r.get("Valor")) for r in pag_periodo if _is_pendente(r.get("Status")))
+    previsto = sum(
+        _num(r.get("Valor"))
+        for r in pag_periodo
+        if str(r.get("Status") or "").strip().lower() != "cancelado"
+    )
+    vencido = 0.0
+    inad_map: dict[str, dict[str, Any]] = {}
+    for r in pagamentos_f:
+        if not _is_pendente(r.get("Status")):
             continue
-        key = labels.get(str(row[0]).strip())
-        if key:
-            kpis[key] = int(_num(row[1])) if key == "parcelas" else _num(row[1])
-    if not kpis["parcelas"] and pagamentos:
-        kpis["parcelas"] = len(pagamentos)
-        kpis["valor_total"] = sum(_num(r.get("Valor")) for r in pagamentos)
-        for r in pagamentos:
-            st = str(r.get("Status") or "").lower()
-            if st in kpis:
-                kpis[st] += _num(r.get("Valor"))
+        venc = _parse_date(r.get("Vencimento"))
+        if not venc or venc >= today:
+            continue
+        valor = _num(r.get("Valor"))
+        # Only count overdue amount in KPI for period parcels when competência matches,
+        # but list all overdue students in filtered unidade.
+        comp = _parse_month(r.get("Competência") or r.get("Competencia"))
+        if comp == periodo:
+            vencido += valor
+        key = str(r.get("ID cadastro") or _full_name(r))
+        bucket = inad_map.setdefault(
+            key,
+            {"nome": _full_name(r), "unidade": r.get("Unidade") or "—", "qtd": 0, "valor": 0.0},
+        )
+        bucket["qtd"] += 1
+        bucket["valor"] += valor
+
+    valores_ticket = [_num(r.get("Valor")) for r in pag_periodo if _num(r.get("Valor")) > 0]
+    ticket = (sum(valores_ticket) / len(valores_ticket)) if valores_ticket else 0.0
+    taxa = int(round((recebido / previsto) * 100)) if previsto else 0
+
+    contratos_pendentes = sum(1 for r in ativos if not _truthy_flag(r.get("Contrato ciente")))
+    autorizacoes_pendentes = sum(1 for r in ativos if not _truthy_flag(r.get("Uso de imagem")))
+
+    # Charts
+    tempo_counter: Counter[str] = Counter()
+    for r in cadastros_f:
+        label = _parse_month(r.get("Data/Hora") or r.get("Data"))
+        if label:
+            tempo_counter[label] += 1
+    tempo_labels = sorted(tempo_counter.keys())[-8:]
+    tempo_values = [tempo_counter[k] for k in tempo_labels]
+
+    unidade_counter: Counter[str] = Counter(
+        str(r.get("Unidade") or "—").strip() or "—" for r in ativos
+    )
+    unidade_labels = list(unidade_counter.keys()) or list(UNIDADE_ABAS)
+    unidade_values = [unidade_counter.get(u, 0) for u in unidade_labels]
+
+    pagas = sum(1 for r in pag_periodo if _is_pago(r.get("Status")))
+    pend_qtd = sum(1 for r in pag_periodo if _is_pendente(r.get("Status")))
+    venc_qtd = 0
+    for r in pag_periodo:
+        if _is_pendente(r.get("Status")):
+            venc = _parse_date(r.get("Vencimento"))
+            if venc and venc < today:
+                venc_qtd += 1
+                pend_qtd -= 1
+    status_labels = ["Pagas", "Pendentes", "Vencidas"]
+    status_values = [pagas, max(pend_qtd, 0), venc_qtd]
+
+    idade_order = ["Até 6", "7–9", "10–12", "13–15", "16+", "Sem idade"]
+    idade_counter: Counter[str] = Counter(_age_band(r.get("Idade")) for r in ativos)
+    idade_labels = [b for b in idade_order if idade_counter.get(b)]
+    idade_values = [idade_counter[b] for b in idade_labels]
+
+    turma_counter: Counter[str] = Counter(
+        str(r.get("Turma") or "Sem turma").strip() or "Sem turma" for r in ativos
+    )
+    turma_items = turma_counter.most_common(8)
+
+    forma_counter: Counter[str] = Counter()
+    for r in cadastros_f:
+        forma = str(r.get("Forma de pagamento") or r.get("Periodicidade") or "Outros").strip() or "Outros"
+        forma_counter[forma] += 1
+    forma_items = forma_counter.most_common(6)
+
     por_unidade: dict[str, dict[str, Any]] = {}
-    for r in pagamentos:
+    for r in pag_periodo:
+        if not _is_pago(r.get("Status")):
+            continue
         u = str(r.get("Unidade") or "—").strip() or "—"
         b = por_unidade.setdefault(u, {"unidade": u, "qtd": 0, "valor": 0.0})
         b["qtd"] += 1
         b["valor"] += _num(r.get("Valor"))
-    recentes = [
+
+    periodos = sorted(
         {
-            "unidade": r.get("Unidade") or "—",
-            "nome": f"{r.get('Nome') or ''} {r.get('Sobrenome') or ''}".strip() or "—",
-            "valor": _num(r.get("Valor")),
-            "status": r.get("Status") or "—",
+            _parse_month(r.get("Competência") or r.get("Competencia") or r.get("Data/Hora") or r.get("Data"))
+            for r in (pagamentos + cadastro_rows)
         }
-        for r in pagamentos[-8:]
-    ]
-    cadastros_por_unidade = {a: len(_safe_records(a)) for a in UNIDADE_ABAS}
-    cadastro_rows: list[dict[str, Any]] = []
-    for aba in UNIDADE_ABAS:
-        cadastro_rows.extend(_safe_records(aba))
+        | {periodo, today.strftime("%Y-%m")}
+    )
+    periodos = [p for p in periodos if p]
+    periodos = sorted(periodos, reverse=True)[:18]
+
+    inad_list = sorted(inad_map.values(), key=lambda x: x["valor"], reverse=True)[:20]
+
     return {
         "mode": "live",
-        "message": "Dados ao vivo da planilha.",
-        "kpis": kpis,
+        "message": "Painel gerencial com dados ao vivo da planilha.",
+        "filtros": {"periodo": periodo, "unidade": unidade},
+        "periodos": periodos or [periodo],
+        "unidades": list(UNIDADE_ABAS),
+        "kpis": {
+            "alunos_ativos": len(ativos),
+            "novos_cadastros": len(novos),
+            "recebido": recebido,
+            "pendente": pendente,
+            "vencido": vencido,
+            "previsto": previsto,
+            "parcelas": len(pag_periodo),
+            "inadimplentes": len(inad_map),
+            "ticket_medio": ticket,
+            "taxa_recebimento": taxa,
+            "contratos_pendentes": contratos_pendentes,
+            "autorizacoes_pendentes": autorizacoes_pendentes,
+        },
         "por_unidade": list(por_unidade.values()),
-        "cadastros_por_unidade": cadastros_por_unidade,
-        "pagamentos_recentes": list(reversed(recentes)),
-        "charts": _build_charts(cadastros_por_unidade, pagamentos, cadastro_rows),
+        "inadimplentes": inad_list,
+        "charts": {
+            "tempo": {"labels": tempo_labels, "values": tempo_values},
+            "unidade": {"labels": unidade_labels, "values": unidade_values},
+            "status": {"labels": status_labels, "values": status_values},
+            "idade": {"labels": idade_labels, "values": idade_values},
+            "turma": {"labels": [k for k, _ in turma_items], "values": [v for _, v in turma_items]},
+            "forma": {"labels": [k for k, _ in forma_items], "values": [v for _, v in forma_items]},
+        },
     }
+
 
 
 def _logged_in() -> bool:
