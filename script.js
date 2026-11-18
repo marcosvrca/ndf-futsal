@@ -6,7 +6,12 @@
   const successPanel = document.getElementById("success-panel");
   const successText = document.getElementById("success-text");
   const payLink = document.getElementById("pay-link");
+  const whatsappLink = document.getElementById("whatsapp-link");
   const resetBtn = document.getElementById("reset-btn");
+  const loadingOverlay = document.getElementById("loading-overlay");
+  const loadingTitle = document.getElementById("loading-title");
+  const loadingText = document.getElementById("loading-text");
+  let envioEmAndamento = false;
   const valorResumo = document.getElementById("valor-resumo");
   const cpfInput = document.getElementById("cpf");
   const telefoneInput = document.getElementById("telefone");
@@ -1364,24 +1369,59 @@
     }
   }
 
-  function showSuccess(data, plano) {
-    syncPayLink(plano);
-
-    if (plano.tipo === "mensal") {
-      successText.textContent =
-        `${data.nome}, cadastro salvo em ${unidade.nome} (${plano.label}). Foi gerada 1 competência na aba Pagamentos.`;
-    } else if (plano.parcelas > 1) {
-      successText.textContent =
-        `${data.nome}, cadastro salvo em ${unidade.nome} (${plano.label}). Foram geradas ${plano.parcelas} competências na aba Pagamentos.`;
+  function setLoading(visible, title, text) {
+    if (!loadingOverlay) return;
+    if (visible) {
+      if (loadingTitle && title) loadingTitle.textContent = title;
+      if (loadingText && text) loadingText.textContent = text;
+      loadingOverlay.hidden = false;
+      loadingOverlay.setAttribute("aria-busy", "true");
+      document.body.classList.add("is-loading");
     } else {
-      successText.textContent =
-        `${data.nome}, cadastro salvo em ${unidade.nome} (${plano.label}).`;
+      loadingOverlay.hidden = true;
+      loadingOverlay.setAttribute("aria-busy", "false");
+      document.body.classList.remove("is-loading");
     }
+  }
+
+  function buildWhatsAppUrl(data, cadastroId) {
+    const phone = String(config.WHATSAPP_ESCOLINHA || "556381150191").replace(/\D/g, "");
+    const nomeCompleto = [data.nome, data.sobrenome].filter(Boolean).join(" ").trim();
+    const partes = ["Olá, acabei de enviar a ficha de inscrição"];
+    if (cadastroId) partes.push(String(cadastroId));
+    if (unidade && unidade.nome) partes.push(unidade.nome);
+    if (nomeCompleto) partes.push(nomeCompleto);
+    const mensagem = partes.join(" — ");
+    return `https://wa.me/${phone}?text=${encodeURIComponent(mensagem)}`;
+  }
+
+  function syncWhatsAppLink(data, cadastroId) {
+    if (!whatsappLink) return;
+    whatsappLink.href = buildWhatsAppUrl(data, cadastroId);
+    whatsappLink.hidden = false;
+  }
+
+  function showSuccess(data, plano, result) {
+    syncPayLink(plano);
+    const cadastroId = (result && (result.cadastro_id || result.id)) || "";
+    syncWhatsAppLink(data, cadastroId);
+
+    const idTxt = cadastroId ? ` Protocolo: ${cadastroId}.` : "";
+    successText.textContent =
+      `${data.nome}, sua ficha de inscrição foi enviada com sucesso para ${unidade.nome} (${plano.label}).${idTxt} ` +
+      `Avise a escolinha pelo WhatsApp para agilizar o atendimento.`;
 
     form.hidden = true;
     successPanel.hidden = false;
     setStatus("");
+    successPanel.scrollIntoView({ behavior: "smooth", block: "start" });
   }
+
+  window.addEventListener("beforeunload", (event) => {
+    if (!envioEmAndamento) return;
+    event.preventDefault();
+    event.returnValue = "";
+  });
 
   function maskPhone(value) {
     const digits = value.replace(/\D/g, "").slice(0, 11);
@@ -1540,6 +1580,12 @@
           : `Anual ${plano.parcelas}x`;
 
     submitBtn.disabled = true;
+    envioEmAndamento = true;
+    setLoading(
+      true,
+      "Gerando contrato...",
+      "Montando o PDF assinado. Não feche nem saia desta página."
+    );
     setButtonLabel(submitBtn, "Gerando contrato...");
 
     let contratoPdfBase64 = "";
@@ -1547,7 +1593,8 @@
       contratoPdfBase64 = await generateContratoPdfBase64();
     } catch (error) {
       console.error(error);
-      // Mantém formulário aberto (não marca sucesso) para retentar
+      envioEmAndamento = false;
+      setLoading(false);
       setStatus(
         "Falha ao gerar o PDF do contrato: " +
           (error && error.message ? error.message : String(error)) +
@@ -1595,6 +1642,11 @@
     };
 
     setButtonLabel(submitBtn, "Enviando...");
+    setLoading(
+      true,
+      "Enviando ficha de inscrição...",
+      "Salvando seus dados. Aguarde e não feche esta página."
+    );
 
     try {
       // text/plain evita preflight CORS bloqueado pelo Apps Script
@@ -1628,7 +1680,7 @@
         );
       }
 
-      showSuccess(data, plano);
+      showSuccess(data, plano, result);
     } catch (error) {
       console.error(error);
       // Formulário permanece — usuário pode retentar (status ainda não é “assinado” no sheet)
@@ -1637,6 +1689,8 @@
           (error && error.message ? error.message : String(error))
       );
     } finally {
+      envioEmAndamento = false;
+      setLoading(false);
       submitBtn.disabled = false;
       setButtonLabel(submitBtn, "Continuar");
     }

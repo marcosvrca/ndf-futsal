@@ -22,6 +22,9 @@ window.NDF_CONFIG = {
   // URL da implantação do Apps Script (termina com /exec)
   GOOGLE_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbxOOL0z3kU6nu1GDThQulT5L5OmQnVsk63VT5xcozQj9nJOuTDufDxCAT2stRuNJ53Ipg/exec",
 
+  // WhatsApp do responsável pela escolinha (somente dígitos com DDI)
+  WHATSAPP_ESCOLINHA: "556381150191",
+
   // Pacote anual (parcelado) + opção mensal avulsa — COOP Futsal e COOP/FLAPALMAS.
   // Sem 6x, 7x, 11x e 12x nestas unidades.
   PLANOS: [

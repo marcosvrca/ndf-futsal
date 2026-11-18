@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=32" />
+  <link rel="stylesheet" href="styles.css?v=33" />
   <script>
     (function () {
       var params = new URLSearchParams(window.location.search);
@@ -234,8 +234,17 @@
           </form>
 
           <div class="success" id="success-panel" hidden>
-            <h3>Dados recebidos</h3>
+            <h3>Ficha de inscrição enviada!</h3>
             <p id="success-text"></p>
+            <a
+              class="btn btn--whatsapp"
+              id="whatsapp-link"
+              href="#"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Avisar no WhatsApp
+            </a>
             <!--
               Link montado em script.js a partir de:
               UNIDADES[unidade].paymentLinks[plano.id]
@@ -468,11 +477,19 @@
     </div>
   </div>
 
+  <div class="loading-overlay" id="loading-overlay" hidden aria-live="assertive" aria-busy="false">
+    <div class="loading-overlay__card" role="status">
+      <div class="loading-spinner" aria-hidden="true"></div>
+      <p class="loading-overlay__title" id="loading-title">Enviando ficha...</p>
+      <p class="loading-overlay__text" id="loading-text">Aguarde, não feche esta página.</p>
+    </div>
+  </div>
+
   <!-- html2canvas/jsPDF no window (o bundle html2pdf NÃO expõe html2canvas globalmente) -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
-  <script src="config.js?v=52"></script>
-  <script src="script.js?v=52"></script>
+  <script src="config.js?v=53"></script>
+  <script src="script.js?v=53"></script>
 </body>
 </html>
