@@ -757,7 +757,8 @@
   function buildContratoPdfWorker() {
     // Só o artigo do contrato — nunca o modal inteiro (header/footer/backdrop)
     const article = modalContrato
-      ? modalContrato.querySelector("#contract-article, .contract__text")
+      ? modalContrato.querySelector("#contract-article") ||
+        modalContrato.querySelector(".contract__text")
       : null;
     if (!article || typeof window.html2pdf !== "function") return null;
 
@@ -767,48 +768,21 @@
       assinaturaImg.hidden = false;
     }
 
-    // Container limpo no fluxo do documento (NÃO position:fixed em -10000px —
-    // isso gera página 1 quase em branco e corta o restante).
-    const wrapper = document.createElement("div");
-    wrapper.setAttribute("aria-hidden", "true");
-    wrapper.className = "pdf-contrato";
-    wrapper.style.cssText = [
-      "position:absolute",
-      "left:0",
-      "top:0",
-      "width:794px",
-      "max-width:794px",
-      "margin:0",
-      "padding:12px 16px",
-      "background:#ffffff",
-      "color:#0f172a",
-      "font-family:Georgia,'Times New Roman',serif",
-      "font-size:11px",
-      "line-height:1.45",
-      "box-sizing:border-box",
-      "z-index:-1",
-      "pointer-events:none",
-      "overflow:visible",
-      "height:auto",
-    ].join(";");
-
     const clone = article.cloneNode(true);
     clone.removeAttribute("id");
-    clone.style.cssText =
-      "display:block;margin:0;padding:0;color:#0f172a;background:#ffffff;max-height:none;overflow:visible;height:auto;";
 
     // UI interativa fora do PDF; assinatura vira só a imagem
-    const cloneCanvas = clone.querySelector("#assinatura-canvas, .signature-pad");
+    const cloneCanvas = clone.querySelector("#assinatura-canvas, canvas.signature-pad");
     if (cloneCanvas) cloneCanvas.remove();
     const cloneClear = clone.querySelector("#limpar-assinatura");
     if (cloneClear) cloneClear.remove();
     const cloneHint = clone.querySelector("#assinatura-hint, .signature-block__hint");
     if (cloneHint) cloneHint.remove();
 
-    const cloneImg = clone.querySelector("#assinatura-img, .signature-img");
+    const cloneImg = clone.querySelector("#assinatura-img, img.signature-img");
     if (cloneImg && assinaturaDataUrl) {
       cloneImg.removeAttribute("hidden");
-      cloneImg.src = assinaturaDataUrl;
+      cloneImg.setAttribute("src", assinaturaDataUrl);
       cloneImg.style.cssText =
         "display:block;width:420px;max-width:100%;height:120px;object-fit:contain;object-position:left bottom;margin:8px 0 4px;border-bottom:1px solid #94a3b8;background:#ffffff;";
     } else if (cloneImg) {
@@ -818,99 +792,133 @@
     const sigWrap = clone.querySelector(".signature-pad-wrap");
     if (sigWrap) {
       sigWrap.style.cssText =
-        "border:none;padding:0;margin:0;background:#ffffff;overflow:visible;";
+        "border:none;padding:0;margin:0;background:#ffffff;overflow:visible;min-height:120px;";
     }
     const sigBlock = clone.querySelector(".signature-block");
     if (sigBlock) {
       sigBlock.classList.add("pdf-assinatura");
       sigBlock.style.cssText =
-        "margin-top:18px;padding-top:12px;border-top:1px solid #cbd5e1;page-break-inside:avoid;break-inside:avoid;";
+        "margin-top:18px;padding-top:12px;border-top:1px solid #cbd5e1;";
     }
 
-    // CSS isolado (hex/rgb only) — sem sticky/transform/max-height do modal
+    // Sanity: o clone precisa ter o texto do contrato
+    const texto = String(clone.innerText || "").replace(/\s+/g, " ").trim();
+    if (texto.length < 200) {
+      throw new Error(
+        "Clone do contrato veio vazio (selector/conteúdo). Recarregue e abra o contrato de novo."
+      );
+    }
+
+    // IMPORTANTE: html2canvas ignora/zera elementos com z-index negativo
+    // (foi a causa do PDF 100% branco). Captura com z-index alto, no viewport.
+    const wrapper = document.createElement("div");
+    wrapper.setAttribute("aria-hidden", "true");
+    wrapper.className = "pdf-contrato";
+    wrapper.style.cssText = [
+      "position:fixed",
+      "left:0",
+      "top:0",
+      "width:794px",
+      "max-width:100%",
+      "margin:0",
+      "padding:16px 20px",
+      "background:#ffffff",
+      "color:#0f172a",
+      "font-family:Georgia,'Times New Roman',serif",
+      "font-size:11px",
+      "line-height:1.45",
+      "box-sizing:border-box",
+      "z-index:2147483646",
+      "pointer-events:none",
+      "overflow:visible",
+      "height:auto",
+      "opacity:1",
+      "visibility:visible",
+    ].join(";");
+
+    clone.style.cssText =
+      "display:block;margin:0;padding:0;color:#0f172a;background:#ffffff;max-height:none;overflow:visible;height:auto;visibility:visible;opacity:1;";
+
+    // CSS próprio no head do documento (não depende de onclone agressivo)
     const pdfStyle = document.createElement("style");
+    pdfStyle.setAttribute("data-pdf-contrato", "1");
     pdfStyle.textContent = [
+      ".pdf-contrato { background:#ffffff !important; color:#0f172a !important; }",
       ".pdf-contrato, .pdf-contrato * {",
       "  box-sizing:border-box;",
       "  color:#0f172a !important;",
-      "  background-image:none !important;",
-      "  box-shadow:none !important;",
-      "  text-shadow:none !important;",
+      "  font-family:Georgia,'Times New Roman',serif !important;",
+      "  max-height:none !important;",
+      "  overflow:visible !important;",
+      "  position:static !important;",
+      "  transform:none !important;",
       "  filter:none !important;",
       "  backdrop-filter:none !important;",
       "  -webkit-backdrop-filter:none !important;",
-      "  transform:none !important;",
-      "  max-height:none !important;",
-      "  overflow:visible !important;",
-      "  font-family:Georgia,'Times New Roman',serif !important;",
+      "  box-shadow:none !important;",
+      "  text-shadow:none !important;",
       "}",
-      ".pdf-contrato { background:#ffffff !important; }",
-      ".pdf-contrato h4 { font-size:14px; margin:0 0 10px; page-break-after:avoid; }",
-      ".pdf-contrato h5 { font-size:12px; margin:12px 0 4px; page-break-after:avoid; break-after:avoid; }",
+      ".pdf-contrato { position:fixed !important; }",
+      ".pdf-contrato h4 { font-size:14px; margin:0 0 10px; }",
+      ".pdf-contrato h5 { font-size:12px; margin:12px 0 4px; }",
       ".pdf-contrato p, .pdf-contrato li { font-size:11px; line-height:1.45; margin:0 0 6px; }",
       ".pdf-contrato ul { margin:0 0 8px; padding-left:18px; }",
-      ".pdf-contrato .pdf-assinatura, .pdf-contrato .pdf-assinatura img {",
-      "  page-break-inside:avoid; break-inside:avoid;",
-      "}",
+      ".pdf-contrato .pdf-assinatura { page-break-inside:avoid; break-inside:avoid; }",
     ].join("\n");
 
-    wrapper.appendChild(pdfStyle);
+    document.head.appendChild(pdfStyle);
     wrapper.appendChild(clone);
     document.body.appendChild(wrapper);
+
+    // Força layout antes do html2canvas medir
+    void wrapper.offsetHeight;
 
     const worker = window
       .html2pdf()
       .set({
-        // Margens A4 em mm — top/bottom 10 evita “buraco” no topo
-        margin: [10, 12, 10, 12],
+        margin: [10, 10, 10, 10],
         filename: "contrato-escolinha-futsal.pdf",
         image: { type: "jpeg", quality: 0.98 },
         html2canvas: {
           scale: 2,
           useCORS: true,
+          allowTaint: true,
           backgroundColor: "#ffffff",
           logging: false,
           scrollX: 0,
-          scrollY: 0,
-          windowWidth: 794,
-          // Remove CSS da página no clone (color-mix / sticky / max-height do modal)
+          scrollY: -window.scrollY,
+          windowWidth: Math.max(document.documentElement.clientWidth, 794),
           onclone: function (clonedDoc, el) {
-            var sheets = clonedDoc.querySelectorAll("link[rel='stylesheet'], style");
-            for (var i = 0; i < sheets.length; i++) {
-              var node = sheets[i];
-              if (node.closest && node.closest(".pdf-contrato")) continue;
-              node.remove();
+            // NÃO remove stylesheets da página (isso apagava o texto no canvas).
+            // Só reforça o nó capturado como bloco visível no topo.
+            var root = el;
+            if (!root || !root.style) {
+              root = clonedDoc.querySelector(".pdf-contrato");
             }
-            var root = el || clonedDoc.querySelector(".pdf-contrato");
-            if (root) {
-              root.style.position = "relative";
-              root.style.left = "0";
-              root.style.top = "0";
-              root.style.zIndex = "1";
-              root.style.background = "#ffffff";
-              root.style.color = "#0f172a";
-              root.style.height = "auto";
-              root.style.maxHeight = "none";
-              root.style.overflow = "visible";
-            }
-            var body = clonedDoc.body;
-            if (body) {
-              body.style.margin = "0";
-              body.style.padding = "0";
-              body.style.background = "#ffffff";
+            if (root && root.style) {
+              root.style.setProperty("position", "fixed", "important");
+              root.style.setProperty("left", "0", "important");
+              root.style.setProperty("top", "0", "important");
+              root.style.setProperty("z-index", "2147483646", "important");
+              root.style.setProperty("opacity", "1", "important");
+              root.style.setProperty("visibility", "visible", "important");
+              root.style.setProperty("background", "#ffffff", "important");
+              root.style.setProperty("color", "#0f172a", "important");
+              root.style.setProperty("display", "block", "important");
+              root.style.setProperty("height", "auto", "important");
+              root.style.setProperty("max-height", "none", "important");
+              root.style.setProperty("overflow", "visible", "important");
             }
           },
         },
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-        // css+legacy pagina o conteúdo inteiro (cláusulas 10–13 + assinatura)
-        // sem avoid-all (que empurra texto e deixa página 1 vazia)
-        pagebreak: {
-          mode: ["css", "legacy"],
-          avoid: [".pdf-assinatura", "img", "h4", "h5"],
-        },
+        // Só evita quebrar a assinatura — avoid em todo h5 gerava páginas vazias
+        pagebreak: { mode: ["css", "legacy"], avoid: [".pdf-assinatura"] },
       })
       .from(wrapper);
 
+    // Guarda o <style> para remover junto com o wrapper
+    wrapper._pdfStyleEl = pdfStyle;
     return { worker, wrapper };
   }
 
