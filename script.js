@@ -776,7 +776,9 @@
 
   function getHtml2Canvas_() {
     if (typeof window.html2canvas === "function") return window.html2canvas;
-    throw new Error("html2canvas não disponível (bundle html2pdf).");
+    throw new Error(
+      "html2canvas não disponível. Confira se o script CDN html2canvas carregou."
+    );
   }
 
   function getJsPDF_() {
@@ -784,7 +786,32 @@
       return window.jspdf.jsPDF;
     }
     if (typeof window.jsPDF === "function") return window.jsPDF;
-    throw new Error("jsPDF não disponível (bundle html2pdf).");
+    throw new Error(
+      "jsPDF não disponível. Confira se o script CDN jspdf carregou."
+    );
+  }
+
+  /** Fallback se html2canvas global falhar: API interna do html2pdf → toCanvas(). */
+  async function captureHostCanvasViaHtml2Pdf_(host, scale) {
+    if (typeof window.html2pdf !== "function") {
+      throw new Error("html2pdf também indisponível.");
+    }
+    var canvas = await window
+      .html2pdf()
+      .set({
+        html2canvas: {
+          scale: scale,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: "#ffffff",
+          logging: false,
+          windowWidth: host.scrollWidth || 794,
+          windowHeight: host.scrollHeight || host.offsetHeight,
+        },
+      })
+      .from(host)
+      .toCanvas();
+    return canvas;
   }
 
   function countNonWhitePixels_(canvas, maxW, maxH) {
@@ -833,16 +860,22 @@
   }
 
   async function captureHostCanvas_(host, scale) {
-    var html2canvasFn = getHtml2Canvas_();
-    var canvas = await html2canvasFn(host, {
-      scale: scale,
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: "#ffffff",
-      logging: false,
-      windowWidth: host.scrollWidth || 794,
-      windowHeight: host.scrollHeight || host.offsetHeight,
-    });
+    var canvas;
+    try {
+      var html2canvasFn = getHtml2Canvas_();
+      canvas = await html2canvasFn(host, {
+        scale: scale,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+        windowWidth: host.scrollWidth || 794,
+        windowHeight: host.scrollHeight || host.offsetHeight,
+      });
+    } catch (err) {
+      console.warn("[pdf-contrato] html2canvas direto falhou, tentando html2pdf.toCanvas", err);
+      canvas = await captureHostCanvasViaHtml2Pdf_(host, scale);
+    }
     var probe = canvas.toDataURL("image/jpeg", 0.5);
     var nonWhite = countNonWhitePixels_(canvas, 80, 80);
     console.info(
