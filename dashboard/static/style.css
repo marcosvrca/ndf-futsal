@@ -1,0 +1,171 @@
+:root {
+  --green-deep: #0f3d2e;
+  --green-mid: #1a5c44;
+  --green-soft: #e8f2ec;
+  --gold: #c4a35a;
+  --field: #f3f6f4;
+  --ink: #10231c;
+  --muted: #4d6359;
+  --pendente: #fff3cd;
+  --pago: #d1e7dd;
+  --danger: #f8d7da;
+  --radius: 18px;
+  --shadow: 0 18px 50px rgba(15, 61, 46, 0.12);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  font-family: Manrope, system-ui, sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(1200px 500px at 10% -10%, rgba(196, 163, 90, 0.22), transparent 55%),
+    radial-gradient(900px 420px at 100% 0%, rgba(26, 92, 68, 0.18), transparent 50%),
+    linear-gradient(180deg, #f7faf8 0%, #eef5f0 100%);
+  padding: 2rem 1.25rem 3rem;
+}
+
+.field {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.07;
+  background-image:
+    linear-gradient(90deg, rgba(15, 61, 46, 0.35) 1px, transparent 1px),
+    linear-gradient(rgba(15, 61, 46, 0.35) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(180deg, #000, transparent 85%);
+}
+
+.top { position: relative; max-width: 1100px; margin: 0 auto 1.5rem; }
+.eyebrow {
+  margin: 0 0 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--green-mid);
+}
+h1 {
+  margin: 0;
+  font-family: "Archivo Black", sans-serif;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  letter-spacing: -0.02em;
+  color: var(--green-deep);
+}
+.lead { margin: 0.55rem 0 0.9rem; color: var(--muted); max-width: 42rem; }
+.badge {
+  display: inline-flex;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+.badge--live { background: var(--pago); color: var(--green-deep); }
+.badge--demo { background: var(--pendente); color: #7a5b00; }
+
+.kpis, .grid, .panel--wide, .foot {
+  position: relative;
+  max-width: 1100px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.9rem;
+  margin-bottom: 1rem;
+}
+.kpi {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(15, 61, 46, 0.08);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(8px);
+}
+.kpi--pendente { background: linear-gradient(180deg, #fffdf5, #fff8e4); }
+.kpi--pago { background: linear-gradient(180deg, #f4fbf7, #e5f5ec); }
+.kpi__label {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.kpi__value {
+  margin: 0.45rem 0 0;
+  font-size: clamp(1.2rem, 2.4vw, 1.65rem);
+  font-weight: 800;
+  color: var(--green-deep);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem;
+  margin-bottom: 0.9rem;
+}
+.panel {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(15, 61, 46, 0.08);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.2rem 0.4rem;
+  box-shadow: var(--shadow);
+}
+.panel--wide { padding-bottom: 1.1rem; margin-bottom: 1.2rem; }
+.panel h2 {
+  margin: 0 0 0.8rem;
+  font-size: 1rem;
+  color: var(--green-deep);
+}
+.list { list-style: none; margin: 0; padding: 0; }
+.list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid rgba(15, 61, 46, 0.08);
+  font-size: 0.95rem;
+}
+.list li:first-child { border-top: 0; }
+.list .empty, td { color: var(--muted); }
+.list strong { color: var(--green-deep); }
+
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+th, td { text-align: left; padding: 0.7rem 0.45rem; border-bottom: 1px solid rgba(15, 61, 46, 0.08); }
+th {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.status {
+  display: inline-flex;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--field);
+}
+.status--pendente { background: var(--pendente); }
+.status--pago { background: var(--pago); }
+.status--cancelado { background: var(--danger); }
+
+.foot {
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+@media (max-width: 860px) {
+  .kpis, .grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .kpis, .grid { grid-template-columns: 1fr; }
+  body { padding: 1.25rem 1rem 2rem; }
+}

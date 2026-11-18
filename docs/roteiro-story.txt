@@ -1,0 +1,18 @@
+Não é vergonha não saber.
+Vergonha é fingir que sabe.
+
+Cliente pediu formulário de matrícula pra escolinha de futsal.
+Sem backend. Sem mensalidade de hospedagem. Sem complicação.
+
+A gente montou assim:
+site estático em HTML, CSS e JavaScript,
+Google Apps Script recebendo o cadastro,
+tudo caindo numa planilha do Google Sheets,
+e o site no ar de graça no GitHub Pages.
+
+Simples. Barato. Funciona.
+
+E o próximo passo já tá a caminho:
+um dashboard em Python pra acompanhar unidades e pagamentos.
+
+Aprender na prática > fingir no discurso.

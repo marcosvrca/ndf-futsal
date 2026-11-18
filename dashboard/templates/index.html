@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard · TUDO SOBRE FUTSAL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <div class="field" aria-hidden="true"></div>
+  <header class="top">
+    <p class="eyebrow">Minha Quadra · painel interno</p>
+    <h1>TUDO SOBRE FUTSAL</h1>
+    <p class="lead">{{ data.message }}</p>
+    <span class="badge badge--{{ data.mode }}">{{ "AO VIVO" if data.mode == "live" else "DEMO" }}</span>
+  </header>
+
+  <section class="kpis" aria-label="Indicadores">
+    <article class="kpi">
+      <p class="kpi__label">Parcelas</p>
+      <p class="kpi__value">{{ data.kpis.parcelas }}</p>
+    </article>
+    <article class="kpi">
+      <p class="kpi__label">Valor total</p>
+      <p class="kpi__value">{{ data.kpis.valor_total | brl }}</p>
+    </article>
+    <article class="kpi kpi--pendente">
+      <p class="kpi__label">Pendente</p>
+      <p class="kpi__value">{{ data.kpis.pendente | brl }}</p>
+    </article>
+    <article class="kpi kpi--pago">
+      <p class="kpi__label">Pago</p>
+      <p class="kpi__value">{{ data.kpis.pago | brl }}</p>
+    </article>
+  </section>
+
+  <section class="grid">
+    <div class="panel">
+      <h2>Cadastros por unidade</h2>
+      <ul class="list">
+        {% for unidade, qtd in data.cadastros_por_unidade.items() %}
+        <li>
+          <span>{{ unidade }}</span>
+          <strong>{{ qtd }}</strong>
+        </li>
+        {% else %}
+        <li class="empty">Sem cadastros ainda.</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h2>Pagamentos por unidade</h2>
+      <ul class="list">
+        {% for row in data.por_unidade %}
+        <li>
+          <span>{{ row.unidade }} · {{ row.qtd }} parcelas</span>
+          <strong>{{ row.valor | brl }}</strong>
+        </li>
+        {% else %}
+        <li class="empty">Sem pagamentos ainda.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </section>
+
+  <section class="panel panel--wide">
+    <h2>Pagamentos recentes</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Unidade</th>
+            <th>Nome</th>
+            <th>Competência</th>
+            <th>Valor</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in data.pagamentos_recentes %}
+          <tr>
+            <td>{{ row.unidade }}</td>
+            <td>{{ row.nome }}</td>
+            <td>{{ row.competencia }}</td>
+            <td>{{ row.valor | brl }}</td>
+            <td><span class="status status--{{ row.status | lower }}">{{ row.status }}</span></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5">Nenhum lançamento.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="foot">
+    Lê as abas Resumo, Pagamentos e as 3 unidades · zero custo de hospedagem no plano free
+  </footer>
+</body>
+</html>

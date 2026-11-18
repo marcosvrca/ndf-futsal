@@ -1,0 +1,25 @@
+NDF FUTSAL — COMO FUNCIONA
+
+📁 Site 100% estático
+index → escolhe a unidade
+cadastro → preenche + assina
+config.js → planos e horários
+Apps Script → recebe o POST
+Google Sheets → grava tudo
+
+⚽ FLUXO
+1. Abre a home
+2. Escolhe a unidade
+3. Preenche a ficha
+4. Lê e assina o contrato
+5. Envia — grátis, sem backend
+
+📊 PLANILHA
+Uma aba por unidade
++ Pagamentos
++ Resumo
++ Mês atual
+
+🚀 NO AR
+GitHub Pages (grátis)
+Dashboard Python (local / Vercel)

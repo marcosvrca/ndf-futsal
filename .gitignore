@@ -1,2 +1,15 @@
 .vercel
 .env*
+!.env.example
+!**/.env.example
+**/service-account.json
+dashboard/.venv/
+dashboard/venv/
+__pycache__/
+*.pyc
+dashboard/_slim_deploy/
+dashboard/_b64_*.txt
+dashboard/_upload_*.json
+dashboard/_deploy_*.json
+dashboard/_prep_upload.py
+dashboard/_make_slim_deploy.py
