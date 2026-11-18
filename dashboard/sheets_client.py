@@ -9,7 +9,7 @@ from typing import Any
 
 UNIDADE_ABAS = (
     "COOP Futsal",
-    "COOP/Fla Palmas",
+    "COOP/FLAPALMAS",
     "Monteiro Lobato Futsal",
 )
 
@@ -86,12 +86,12 @@ def demo_payload() -> dict[str, Any]:
         },
         "por_unidade": [
             {"unidade": "COOP Futsal", "qtd": 14, "valor": 6160.0},
-            {"unidade": "COOP/Fla Palmas", "qtd": 16, "valor": 7040.0},
+            {"unidade": "COOP/FLAPALMAS", "qtd": 16, "valor": 7040.0},
             {"unidade": "Monteiro Lobato Futsal", "qtd": 12, "valor": 5280.0},
         ],
         "cadastros_por_unidade": {
             "COOP Futsal": 8,
-            "COOP/Fla Palmas": 9,
+            "COOP/FLAPALMAS": 9,
             "Monteiro Lobato Futsal": 6,
         },
         "pagamentos_recentes": [
@@ -103,7 +103,7 @@ def demo_payload() -> dict[str, Any]:
                 "status": "Pendente",
             },
             {
-                "unidade": "COOP/Fla Palmas",
+                "unidade": "COOP/FLAPALMAS",
                 "nome": "Bruno Costa",
                 "competencia": "2026-11",
                 "valor": 432.0,

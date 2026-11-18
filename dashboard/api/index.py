@@ -14,7 +14,7 @@ app.secret_key = os.environ.get("SECRET_KEY", "ndf-futsal-dashboard-session-key"
 
 AUTH_USER = "marcos.farias@mail.uft.edu.br"
 AUTH_PASS = "NDF-futsal@2016"
-UNIDADE_ABAS = ("COOP Futsal", "COOP/Fla Palmas", "Monteiro Lobato Futsal")
+UNIDADE_ABAS = ("COOP Futsal", "COOP/FLAPALMAS", "Monteiro Lobato Futsal")
 
 LOGIN_PAGE = """<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -200,13 +200,13 @@ def demo_payload() -> dict[str, Any]:
         "kpis": {"parcelas": 42, "valor_total": 18480.0, "pendente": 9200.0, "pago": 8200.0},
         "por_unidade": [
             {"unidade": "COOP Futsal", "qtd": 14, "valor": 6160.0},
-            {"unidade": "COOP/Fla Palmas", "qtd": 16, "valor": 7040.0},
+            {"unidade": "COOP/FLAPALMAS", "qtd": 16, "valor": 7040.0},
             {"unidade": "Monteiro Lobato Futsal", "qtd": 12, "valor": 5280.0},
         ],
-        "cadastros_por_unidade": {"COOP Futsal": 8, "COOP/Fla Palmas": 9, "Monteiro Lobato Futsal": 6},
+        "cadastros_por_unidade": {"COOP Futsal": 8, "COOP/FLAPALMAS": 9, "Monteiro Lobato Futsal": 6},
         "pagamentos_recentes": [
             {"unidade": "COOP Futsal", "nome": "Ana Silva", "valor": 220.0, "status": "Pendente"},
-            {"unidade": "COOP/Fla Palmas", "nome": "Bruno Costa", "valor": 432.0, "status": "Pago"},
+            {"unidade": "COOP/FLAPALMAS", "nome": "Bruno Costa", "valor": 432.0, "status": "Pago"},
         ],
         "charts": _demo_charts(),
     }
