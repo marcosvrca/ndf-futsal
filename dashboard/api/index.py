@@ -591,6 +591,11 @@ def _num(value: Any) -> float:
 _SHEET_ERRORS: list[str] = []
 
 
+def _fmt_err(err: BaseException) -> str:
+    text = str(err).strip() or repr(err)
+    return f"{type(err).__name__}: {text}"[:280]
+
+
 def _note_sheet_error(msg: str) -> None:
     text = str(msg or "").strip()
     if text and text not in _SHEET_ERRORS:
@@ -655,18 +660,22 @@ def _safe_records(title: str) -> list[dict[str, Any]]:
         try:
             return ws.get_all_records()
         except Exception as rec_err:
-            _note_sheet_error(f"{title}: get_all_records falhou ({rec_err}); usando fallback.")
+            _note_sheet_error(
+                f"{title}: get_all_records falhou ({_fmt_err(rec_err)}); usando fallback."
+            )
             return _records_from_values(ws.get_all_values())
     except Exception as err:
-        _note_sheet_error(f"{title}: {err}")
+        _note_sheet_error(f"{title}: {_fmt_err(err)}")
         return []
 
 
 def _probe_sheets() -> dict[str, Any]:
     """Diagnóstico leve da conexão com a planilha (sem expor segredos)."""
+    sheet_id = (os.getenv("GOOGLE_SHEETS_ID") or "").strip()
     info: dict[str, Any] = {
         "configured": configured(),
-        "sheet_id_set": bool((os.getenv("GOOGLE_SHEETS_ID") or "").strip()),
+        "sheet_id_set": bool(sheet_id),
+        "sheet_id_suffix": sheet_id[-8:] if len(sheet_id) >= 8 else sheet_id,
         "service_account": _sa_email() or "(não lido)",
         "titles": [],
         "counts": {},
@@ -682,7 +691,7 @@ def _probe_sheets() -> dict[str, Any]:
         for name in [os.getenv("SHEET_PAGAMENTOS", "Pagamentos"), *UNIDADE_ABAS]:
             info["counts"][name] = len(_safe_records(name))
     except Exception as err:
-        _note_sheet_error(str(err))
+        _note_sheet_error(_fmt_err(err))
     info["errors"] = list(_SHEET_ERRORS)
     return info
 
