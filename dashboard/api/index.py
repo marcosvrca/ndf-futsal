@@ -588,6 +588,25 @@ def _num(value: Any) -> float:
         return 0.0
 
 
+_SHEET_ERRORS: list[str] = []
+
+
+def _note_sheet_error(msg: str) -> None:
+    text = str(msg or "").strip()
+    if text and text not in _SHEET_ERRORS:
+        _SHEET_ERRORS.append(text[:280])
+
+
+def _sa_email() -> str:
+    raw = (os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON") or "").strip()
+    if not raw:
+        return ""
+    try:
+        return str(json.loads(raw).get("client_email") or "").strip()
+    except Exception:
+        return ""
+
+
 @lru_cache(maxsize=1)
 def _gc():
     import gspread
@@ -599,14 +618,73 @@ def _gc():
 
 
 def _open():
-    return _gc().open_by_key((os.getenv("GOOGLE_SHEETS_ID") or "").strip())
+    sheet_id = (os.getenv("GOOGLE_SHEETS_ID") or "").strip()
+    if not sheet_id:
+        raise RuntimeError("GOOGLE_SHEETS_ID ausente")
+    return _gc().open_by_key(sheet_id)
+
+
+def _records_from_values(values: list[list[Any]]) -> list[dict[str, Any]]:
+    """Converte grade A1 em dicts, tolerando cabeçalhos vazios/duplicados."""
+    if not values:
+        return []
+    headers_raw = [str(h or "").strip() for h in values[0]]
+    headers: list[str] = []
+    seen: dict[str, int] = {}
+    for idx, name in enumerate(headers_raw):
+        if not name:
+            name = f"_col_{idx + 1}"
+        count = seen.get(name, 0)
+        seen[name] = count + 1
+        headers.append(name if count == 0 else f"{name}_{count + 1}")
+
+    rows: list[dict[str, Any]] = []
+    for raw in values[1:]:
+        if not any(str(c or "").strip() for c in raw):
+            continue
+        item: dict[str, Any] = {}
+        for i, key in enumerate(headers):
+            item[key] = raw[i] if i < len(raw) else ""
+        rows.append(item)
+    return rows
 
 
 def _safe_records(title: str) -> list[dict[str, Any]]:
     try:
-        return _open().worksheet(title).get_all_records()
-    except Exception:
+        ws = _open().worksheet(title)
+        try:
+            return ws.get_all_records()
+        except Exception as rec_err:
+            _note_sheet_error(f"{title}: get_all_records falhou ({rec_err}); usando fallback.")
+            return _records_from_values(ws.get_all_values())
+    except Exception as err:
+        _note_sheet_error(f"{title}: {err}")
         return []
+
+
+def _probe_sheets() -> dict[str, Any]:
+    """Diagnóstico leve da conexão com a planilha (sem expor segredos)."""
+    info: dict[str, Any] = {
+        "configured": configured(),
+        "sheet_id_set": bool((os.getenv("GOOGLE_SHEETS_ID") or "").strip()),
+        "service_account": _sa_email() or "(não lido)",
+        "titles": [],
+        "counts": {},
+        "errors": [],
+    }
+    if not info["configured"]:
+        info["errors"].append("Credenciais ou GOOGLE_SHEETS_ID ausentes.")
+        return info
+    try:
+        ss = _open()
+        info["title"] = ss.title
+        info["titles"] = [ws.title for ws in ss.worksheets()]
+        for name in [os.getenv("SHEET_PAGAMENTOS", "Pagamentos"), *UNIDADE_ABAS]:
+            info["counts"][name] = len(_safe_records(name))
+    except Exception as err:
+        _note_sheet_error(str(err))
+    info["errors"] = list(_SHEET_ERRORS)
+    return info
 
 
 def _match_unidade(row_unidade: Any, filtro: str) -> bool:
@@ -616,9 +694,13 @@ def _match_unidade(row_unidade: Any, filtro: str) -> bool:
 
 
 def load_dashboard() -> dict[str, Any]:
+    global _SHEET_ERRORS
+    _SHEET_ERRORS = []
+
     today = date.today()
-    periodo = (request.args.get("periodo") or today.strftime("%Y-%m")).strip()
+    periodo_arg = (request.args.get("periodo") or "").strip()
     unidade = (request.args.get("unidade") or "todas").strip() or "todas"
+    periodo = periodo_arg or today.strftime("%Y-%m")
 
     if not configured():
         return _demo_payload(periodo, unidade)
@@ -630,6 +712,19 @@ def load_dashboard() -> dict[str, Any]:
             row = dict(row)
             row.setdefault("Unidade", aba)
             cadastro_rows.append(row)
+
+    # Se o mês atual não tem dados e o usuário não escolheu período, usa o mais recente.
+    if not periodo_arg:
+        months = sorted(
+            {
+                _parse_month(r.get("Competência") or r.get("Competencia") or r.get("Data/Hora") or r.get("Data"))
+                for r in (pagamentos + cadastro_rows)
+            },
+            reverse=True,
+        )
+        months = [m for m in months if m]
+        if months and periodo not in months:
+            periodo = months[0]
 
     cadastros_f = [r for r in cadastro_rows if _match_unidade(r.get("Unidade"), unidade)]
     pagamentos_f = [r for r in pagamentos if _match_unidade(r.get("Unidade"), unidade)]
@@ -755,12 +850,28 @@ def load_dashboard() -> dict[str, Any]:
 
     inad_list = sorted(inad_map.values(), key=lambda x: x["valor"], reverse=True)[:20]
 
+    message = "Painel gerencial com dados ao vivo da planilha."
+    if not pagamentos and not cadastro_rows:
+        sa = _sa_email()
+        share_hint = (
+            f" Compartilhe a planilha com {sa} como Leitor."
+            if sa
+            else " Compartilhe a planilha com o e-mail da service account (Leitor) e confira GOOGLE_SHEETS_ID."
+        )
+        err_txt = " | ".join(_SHEET_ERRORS[:2]) if _SHEET_ERRORS else "nenhuma linha lida nas abas Pagamentos/unidades."
+        message = f"Conectado, mas sem dados da planilha: {err_txt}.{share_hint}"
+
     return {
         "mode": "live",
-        "message": "Painel gerencial com dados ao vivo da planilha.",
+        "message": message,
         "filtros": {"periodo": periodo, "unidade": unidade},
         "periodos": periodos or [periodo],
         "unidades": list(UNIDADE_ABAS),
+        "sheet_errors": list(_SHEET_ERRORS),
+        "sheet_counts": {
+            "pagamentos": len(pagamentos),
+            "cadastros": len(cadastro_rows),
+        },
         "kpis": {
             "alunos_ativos": len(ativos),
             "novos_cadastros": len(novos),
@@ -847,6 +958,14 @@ def api_summary():
     return jsonify(load_dashboard())
 
 
+@app.route("/api/sheets-status", methods=["GET"])
+@login_required
+def api_sheets_status():
+    global _SHEET_ERRORS
+    _SHEET_ERRORS = []
+    return jsonify(_probe_sheets())
+
+
 @app.route("/", defaults={"path": ""}, methods=["GET"])
 @app.route("/<path:path>", methods=["GET"])
 @login_required
@@ -854,6 +973,8 @@ def entry(path: str = ""):
     full = (request.path or "/").rstrip("/") or "/"
     if full.endswith("/health") or path.endswith("health"):
         return health()
+    if full.endswith("/api/sheets-status") or path.endswith("sheets-status"):
+        return api_sheets_status()
     if full.endswith("/api/summary") or path.endswith("summary"):
         return api_summary()
     if full.endswith("/logout") or path.endswith("logout"):
