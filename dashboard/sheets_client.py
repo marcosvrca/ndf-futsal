@@ -99,14 +99,14 @@ def demo_payload() -> dict[str, Any]:
                 "unidade": "COOP Futsal",
                 "nome": "Ana Silva",
                 "competencia": "2026-11",
-                "valor": 220.0,
+                "valor": 200.0,
                 "status": "Pendente",
             },
             {
                 "unidade": "COOP/FLAPALMAS",
                 "nome": "Bruno Costa",
                 "competencia": "2026-11",
-                "valor": 432.0,
+                "valor": 255.0,
                 "status": "Pago",
             },
             {

@@ -38,11 +38,14 @@ Validação de CPF, telefone e contrato ficam no front (`script.js`). O envio us
 | ID | Resumo |
 |----|--------|
 | `1x` | À vista R$ 2.000 |
-| `2x` … `5x`, `8x`, `9x` | Anual parcelado (total R$ 2.160, exceto 10x) |
+| `2x` … `5x`, `8x`, `9x` | Anual parcelado (total R$ 2.160, exceto 10x/11x) |
 | `10x` | 10× R$ 220 (total R$ 2.200) |
+| `11x` | 11× R$ 200 (total R$ 2.200) |
+| `semestral-1x` | Semestral à vista R$ 1.500 |
+| `semestral-6x` | Semestral 6× R$ 255 (total R$ 1.530) |
 | `mensal` | R$ 260 avulso |
 
-Horários e locais também estão em `config.js` por unidade.
+Horários e locais também estão em `config.js` por unidade (Taquaralto por ano de nascimento; Flapalmas por SUB).
 
 ## Ligar o Google Sheets
 

@@ -535,8 +535,19 @@ def _demo_payload(periodo: str, unidade: str) -> dict[str, Any]:
             "unidade": {"labels": list(UNIDADE_ABAS), "values": [90, 86, 72]},
             "status": {"labels": ["Pagas", "Pendentes", "Vencidas"], "values": [140, 22, 18]},
             "idade": {"labels": ["Até 6", "7–9", "10–12", "13–15", "16+"], "values": [28, 64, 82, 54, 20]},
-            "turma": {"labels": ["Sub-9", "Sub-11", "Sub-13", "Sub-15"], "values": [40, 55, 48, 36]},
-            "forma": {"labels": ["PIX", "Cartão", "Dinheiro"], "values": [58, 30, 12]},
+            "turma": {
+                "labels": [
+                    "Nascidos 2018-2020",
+                    "Nascidos 2015-2017",
+                    "SUB11 e SUB12",
+                    "SUB12 e SUB13",
+                ],
+                "values": [40, 55, 48, 36],
+            },
+            "forma": {
+                "labels": ["Anual 11x", "Semestral 6x", "Mensal", "Anual 10x"],
+                "values": [58, 30, 12, 20],
+            },
         },
     }
 

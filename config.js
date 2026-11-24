@@ -25,8 +25,7 @@ window.NDF_CONFIG = {
   // WhatsApp do responsável pela escolinha (somente dígitos com DDI)
   WHATSAPP_ESCOLINHA: "556381150191",
 
-  // Pacote anual (parcelado) + opção mensal avulsa — COOP Futsal e COOP/FLAPALMAS.
-  // Sem 6x, 7x, 11x e 12x nestas unidades.
+  // Pacote anual / semestral + opção mensal avulsa — COOP Futsal e COOP/FLAPALMAS.
   PLANOS: [
     { id: "1x", label: "Parcela Única de R$ 2.000,00", parcelas: 1, valorParcela: 2000, valorTotal: 2000, tipo: "anual" },
     { id: "2x", label: "2 Parcelas de R$ 1.080,00", parcelas: 2, valorParcela: 1080, valorTotal: 2160, tipo: "anual" },
@@ -36,6 +35,9 @@ window.NDF_CONFIG = {
     { id: "8x", label: "8 Parcelas de R$ 270,00", parcelas: 8, valorParcela: 270, valorTotal: 2160, tipo: "anual" },
     { id: "9x", label: "9 Parcelas de R$ 240,00", parcelas: 9, valorParcela: 240, valorTotal: 2160, tipo: "anual" },
     { id: "10x", label: "10 Parcelas de R$ 220,00", parcelas: 10, valorParcela: 220, valorTotal: 2200, tipo: "anual" },
+    { id: "11x", label: "11 Parcelas de R$ 200,00", parcelas: 11, valorParcela: 200, valorTotal: 2200, tipo: "anual" },
+    { id: "semestral-1x", label: "Semestral — Parcela Única de R$ 1.500,00", parcelas: 1, valorParcela: 1500, valorTotal: 1500, tipo: "semestral" },
+    { id: "semestral-6x", label: "Semestral — 6 Parcelas de R$ 255,00", parcelas: 6, valorParcela: 255, valorTotal: 1530, tipo: "semestral" },
     { id: "mensal", label: "Parcela de R$ 260,00", parcelas: 1, valorParcela: 260, valorTotal: 260, tipo: "mensal" },
   ],
 
@@ -49,6 +51,9 @@ window.NDF_CONFIG = {
     "8x": "#",
     "9x": "#",
     "10x": "#",
+    "11x": "#",
+    "semestral-1x": "#",
+    "semestral-6x": "#",
     mensal: "#",
   },
 
@@ -75,6 +80,9 @@ window.NDF_CONFIG = {
         "5x": "COLE_AQUI_TAQUARALTO_LINK_5X", // 5× R$ 432
         "8x": "COLE_AQUI_TAQUARALTO_LINK_8X", // 8× R$ 270
         "10x": "COLE_AQUI_TAQUARALTO_LINK_10X", // 10× R$ 220
+        "11x": "COLE_AQUI_TAQUARALTO_LINK_11X", // 11× R$ 200
+        "semestral-1x": "COLE_AQUI_TAQUARALTO_LINK_SEMESTRAL_AVISTA", // à vista R$ 1.500
+        "semestral-6x": "COLE_AQUI_TAQUARALTO_LINK_SEMESTRAL_6X", // 6× R$ 255
       },
       // IDEIA (não usado): assinatura Preapproval mensal avulsa — script.js NÃO lê este objeto
       paymentLinksIdeia: {
@@ -82,20 +90,20 @@ window.NDF_CONFIG = {
       },
       horarios: [
         {
-          id: "coop-t3-1400-sub10",
+          id: "coop-t3-1400-nascidos-2018-2020",
           dias: "Terça e Quinta",
           horario: "14:00 às 15:00",
-          turma: "SUB10",
+          turma: "Nascidos 2018, 2019, 2020",
           local: "Prisma Taquaralto",
-          label: "14:00 às 15:00 — SUB10",
+          label: "14:00 às 15:00 — Nascidos 2018, 2019, 2020",
         },
         {
-          id: "coop-t3-1500-sub12",
+          id: "coop-t3-1500-nascidos-2015-2017",
           dias: "Terça e Quinta",
           horario: "15:00 às 16:00",
-          turma: "SUB12",
+          turma: "Nascidos 2017, 2016, 2015",
           local: "Prisma Taquaralto",
-          label: "15:00 às 16:00 — SUB12",
+          label: "15:00 às 16:00 — Nascidos 2017, 2016, 2015",
         },
       ],
     },
@@ -115,6 +123,9 @@ window.NDF_CONFIG = {
         "5x": "COLE_AQUI_FLAPALMAS_LINK_5X", // 5× R$ 432
         "8x": "COLE_AQUI_FLAPALMAS_LINK_8X", // 8× R$ 270
         "10x": "COLE_AQUI_FLAPALMAS_LINK_10X", // 10× R$ 220
+        "11x": "COLE_AQUI_FLAPALMAS_LINK_11X", // 11× R$ 200
+        "semestral-1x": "COLE_AQUI_FLAPALMAS_LINK_SEMESTRAL_AVISTA", // à vista R$ 1.500
+        "semestral-6x": "COLE_AQUI_FLAPALMAS_LINK_SEMESTRAL_6X", // 6× R$ 255
       },
       // IDEIA (não usado): assinatura Preapproval mensal avulsa — script.js NÃO lê este objeto
       paymentLinksIdeia: {
@@ -144,6 +155,14 @@ window.NDF_CONFIG = {
           turma: "SUB11 e SUB12",
           local: "906 Sul",
           label: "16:00 às 17:20 — SUB11 e SUB12",
+        },
+        {
+          id: "fla-segqua-1720-sub12-13",
+          dias: "Segunda e Quarta",
+          horario: "17:20 às 18:30",
+          turma: "SUB12 e SUB13",
+          local: "906 Sul",
+          label: "17:20 às 18:30 — SUB12 e SUB13",
         },
       ],
     },

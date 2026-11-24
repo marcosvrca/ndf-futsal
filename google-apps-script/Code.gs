@@ -458,22 +458,28 @@ function ensureResumo_() {
   sheet.getRange("A19").setValue("11x");
   sheet.getRange("B19").setFormula('=COUNTIF(Pagamentos!J:J;"Anual 11x")');
   sheet.getRange("C19").setFormula('=IFERROR(SUMIF(Pagamentos!J:J;"Anual 11x";Pagamentos!L:L);0)');
-  sheet.getRange("A20").setValue("Mensal");
-  sheet.getRange("B20").setFormula('=COUNTIF(Pagamentos!J:J;"Mensal")');
-  sheet.getRange("C20").setFormula('=IFERROR(SUMIF(Pagamentos!J:J;"Mensal";Pagamentos!L:L);0)');
-  sheet.getRange("A21").setValue("Outros / legado");
-  sheet.getRange("B21").setFormula(
-    '=IFERROR(COUNTA(Pagamentos!J2:J)-B15-B16-B17-B18-B19-B20;0)'
+  sheet.getRange("A20").setValue("Semestral à vista");
+  sheet.getRange("B20").setFormula('=COUNTIF(Pagamentos!J:J;"Semestral à vista")');
+  sheet.getRange("C20").setFormula('=IFERROR(SUMIF(Pagamentos!J:J;"Semestral à vista";Pagamentos!L:L);0)');
+  sheet.getRange("A21").setValue("Semestral 6x");
+  sheet.getRange("B21").setFormula('=COUNTIF(Pagamentos!J:J;"Semestral 6x")');
+  sheet.getRange("C21").setFormula('=IFERROR(SUMIF(Pagamentos!J:J;"Semestral 6x";Pagamentos!L:L);0)');
+  sheet.getRange("A22").setValue("Mensal");
+  sheet.getRange("B22").setFormula('=COUNTIF(Pagamentos!J:J;"Mensal")');
+  sheet.getRange("C22").setFormula('=IFERROR(SUMIF(Pagamentos!J:J;"Mensal";Pagamentos!L:L);0)');
+  sheet.getRange("A23").setValue("Outros / legado");
+  sheet.getRange("B23").setFormula(
+    '=IFERROR(COUNTA(Pagamentos!J2:J)-B15-B16-B17-B18-B19-B20-B21-B22;0)'
   );
-  sheet.getRange("C21").setFormula(
-    '=IFERROR(SUM(Pagamentos!L2:L)-C15-C16-C17-C18-C19-C20;0)'
+  sheet.getRange("C23").setFormula(
+    '=IFERROR(SUM(Pagamentos!L2:L)-C15-C16-C17-C18-C19-C20-C21-C22;0)'
   );
-  sheet.getRange("C15:C21").setNumberFormat('"R$"#,##0.00');
+  sheet.getRange("C15:C23").setNumberFormat('"R$"#,##0.00');
 
   // Dinâmico: tudo que existir em Periodicidade
-  sheet.getRange("A23").setValue("Todas as periodicidades (automático)").setFontWeight("bold").setFontSize(13).setFontColor(COR_HEADER_FG).setBackground(COR_HEADER_BG);
-  sheet.getRange("A23:C23").merge();
-  sheet.getRange("A24").setFormula(
+  sheet.getRange("A25").setValue("Todas as periodicidades (automático)").setFontWeight("bold").setFontSize(13).setFontColor(COR_HEADER_FG).setBackground(COR_HEADER_BG);
+  sheet.getRange("A25:C25").merge();
+  sheet.getRange("A26").setFormula(
     '=IFERROR(QUERY(Pagamentos!J:L;"select J, count(J), sum(L) where J is not null and J <> \'\' group by J label J \'Forma\', count(J) \'Qtd\', sum(L) \'Valor\'";1);"Sem dados em Pagamentos")'
   );
 
@@ -557,8 +563,8 @@ function ensureHorarios_() {
     sheet.getRange(5 + i, 1).setValue(UNIDADE_ABAS[i]);
   }
 
-  // Grade oficial COOP/FLAPALMAS (Segunda e Quarta — 906 Sul)
-  sheet.getRange("A9").setValue("COOP/FLAPALMAS — horários").setFontWeight("bold");
+  // Grade oficial COOP Futsal / Taquaralto (Terça e Quinta — Prisma Taquaralto)
+  sheet.getRange("A9").setValue("COOP Futsal (Taquaralto) — horários").setFontWeight("bold");
   sheet.getRange("A10").setValue("Unidade");
   sheet.getRange("B10").setValue("Dias");
   sheet.getRange("C10").setValue("Horário");
@@ -568,15 +574,33 @@ function ensureHorarios_() {
     .setFontWeight("bold")
     .setFontColor(COR_HEADER_FG)
     .setBackground(COR_HEADER_BG);
+  var taquaraltoHorarios = [
+    ["COOP Futsal", "Terça e Quinta", "14:00 às 15:00", "Nascidos 2018, 2019, 2020", "Prisma Taquaralto"],
+    ["COOP Futsal", "Terça e Quinta", "15:00 às 16:00", "Nascidos 2017, 2016, 2015", "Prisma Taquaralto"],
+  ];
+  sheet.getRange(11, 1, taquaraltoHorarios.length, 5).setValues(taquaraltoHorarios);
+
+  // Grade oficial COOP/FLAPALMAS (Segunda e Quarta — 906 Sul)
+  sheet.getRange("A14").setValue("COOP/FLAPALMAS — horários").setFontWeight("bold");
+  sheet.getRange("A15").setValue("Unidade");
+  sheet.getRange("B15").setValue("Dias");
+  sheet.getRange("C15").setValue("Horário");
+  sheet.getRange("D15").setValue("Turma");
+  sheet.getRange("E15").setValue("Local");
+  sheet.getRange(15, 1, 1, 5)
+    .setFontWeight("bold")
+    .setFontColor(COR_HEADER_FG)
+    .setBackground(COR_HEADER_BG);
   var flapalmasHorarios = [
     ["COOP/FLAPALMAS", "Segunda e Quarta", "14:00 às 15:00", "SUB8 e SUB9", "906 Sul"],
     ["COOP/FLAPALMAS", "Segunda e Quarta", "15:00 às 16:00", "SUB10", "906 Sul"],
     ["COOP/FLAPALMAS", "Segunda e Quarta", "16:00 às 17:20", "SUB11 e SUB12", "906 Sul"],
+    ["COOP/FLAPALMAS", "Segunda e Quarta", "17:20 às 18:30", "SUB12 e SUB13", "906 Sul"],
   ];
-  sheet.getRange(11, 1, flapalmasHorarios.length, 5).setValues(flapalmasHorarios);
+  sheet.getRange(16, 1, flapalmasHorarios.length, 5).setValues(flapalmasHorarios);
 
-  sheet.getRange("A15").setValue("Pagamentos consolidados").setFontWeight("bold");
-  sheet.getRange("A16").setValue("A aba Pagamentos reúne todas as unidades, com a coluna Unidade.");
+  sheet.getRange("A21").setValue("Pagamentos consolidados").setFontWeight("bold");
+  sheet.getRange("A22").setValue("A aba Pagamentos reúne todas as unidades, com a coluna Unidade.");
   sheet.setTabColor(COR_ACCENT);
   return sheet;
 }
@@ -595,7 +619,8 @@ function mesesDoPlano_(data) {
     return Math.max(1, parseInt(data.meses, 10) || 1);
   }
   var id = String(data.plano_id || "").toLowerCase();
-  if (id === "mensal" || id === "1x") return 1;
+  if (id === "mensal" || id === "1x" || id === "semestral-1x") return 1;
+  if (id === "semestral-6x") return 6;
   var m = parseInt(String(id).replace(/\D/g, ""), 10);
   return m > 0 ? m : 1;
 }
@@ -632,13 +657,17 @@ function valorTotal_(data, vParcela, meses) {
 
 /**
  * Forma de pagamento legível e estável entre unidades.
- * Ex.: "Mensal" | "À vista" | "5x" | "12x"
+ * Ex.: "Mensal" | "À vista" | "Semestral 6x" | "11x"
  */
 function formaPagamento_(data, meses) {
   if (data.forma_pagamento) return String(data.forma_pagamento);
   var tipo = String(data.tipo_plano || "").toLowerCase();
   var id = String(data.plano_id || "").toLowerCase();
   if (tipo === "mensal" || id === "mensal") return "Mensal";
+  if (tipo === "semestral" || id.indexOf("semestral") === 0) {
+    if (meses === 1 || id === "semestral-1x") return "Semestral à vista";
+    return "Semestral " + meses + "x";
+  }
   if (meses === 1 || id === "1x") return "À vista";
   return meses + "x";
 }

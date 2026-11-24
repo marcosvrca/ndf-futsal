@@ -2,6 +2,8 @@
 
 Painel Python (zero custo) que lê a mesma planilha do formulário estático.
 
+Planos e turmas vêm da planilha (Apps Script / cadastros): anual (inclui **11× R$ 200**), **semestral** (à vista R$ 1.500 ou 6× R$ 255), mensal; Taquaralto por ano de nascimento; Flapalmas com turma **17:20–18:30 SUB12 e SUB13**.
+
 ## Por que Flask (e não só Streamlit)?
 
 - **Local:** `python app.py` **ou** `streamlit run streamlit_app.py`

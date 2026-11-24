@@ -355,14 +355,16 @@
       return;
     }
 
+    const sufixoTipo = plano.tipo === "semestral" ? "semestral" : "à vista";
     if (plano.parcelas === 1) {
-      valorResumo.innerHTML = `Valor selecionado: <strong>${formatBRL(plano.valorTotal)}</strong> (à vista)`;
+      valorResumo.innerHTML = `Valor selecionado: <strong>${formatBRL(plano.valorTotal)}</strong> (${sufixoTipo})`;
       return;
     }
 
     valorResumo.innerHTML =
       `Valor selecionado: <strong>${plano.parcelas}× de ${formatBRL(plano.valorParcela)}</strong>` +
-      ` · total ${formatBRL(plano.valorTotal)}`;
+      ` · total ${formatBRL(plano.valorTotal)}` +
+      (plano.tipo === "semestral" ? " (semestral)" : "");
   }
 
   function contratoPronto() {
@@ -674,8 +676,19 @@
 
   function planMeta(plano) {
     if (plano.tipo === "mensal") return "Mensal";
+    if (plano.tipo === "semestral") {
+      return plano.parcelas === 1 ? "Semestral à vista" : `Semestral ${plano.parcelas}×`;
+    }
     if (plano.parcelas === 1) return "À vista";
     return `${plano.parcelas}×`;
+  }
+
+  function periodicidadeLabel(plano) {
+    if (plano.tipo === "mensal") return "Mensal";
+    if (plano.tipo === "semestral") {
+      return plano.parcelas === 1 ? "Semestral à vista" : `Semestral ${plano.parcelas}x`;
+    }
+    return plano.parcelas === 1 ? "Anual à vista" : `Anual ${plano.parcelas}x`;
   }
 
   function renderPlanGroup(title, items) {
@@ -703,11 +716,13 @@
     if (!planoOptions) return;
 
     const anuais = planos.filter((p) => p.tipo === "anual");
+    const semestrais = planos.filter((p) => p.tipo === "semestral");
     const mensais = planos.filter((p) => p.tipo === "mensal");
 
     planoOptions.innerHTML = `
       <div class="plan-list">
         ${renderPlanGroup("Pacote anual", anuais)}
+        ${renderPlanGroup("Pacote semestral", semestrais)}
         ${renderPlanGroup("Pagamento mensal", mensais)}
       </div>
     `;
@@ -1572,12 +1587,7 @@
       return;
     }
 
-    const periodicidade =
-      plano.tipo === "mensal"
-        ? "Mensal"
-        : plano.parcelas === 1
-          ? "Anual à vista"
-          : `Anual ${plano.parcelas}x`;
+    const periodicidade = periodicidadeLabel(plano);
 
     submitBtn.disabled = true;
     envioEmAndamento = true;
