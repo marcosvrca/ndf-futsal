@@ -12,3 +12,4 @@ _deploy_*.json
 _prep_upload.py
 _make_slim_deploy.py
 _mcp_args.json
+.env*
