@@ -458,28 +458,31 @@ function ensureResumo_() {
   sheet.getRange("A19").setValue("11x");
   sheet.getRange("B19").setFormula('=COUNTIF(Pagamentos!J:J;"Anual 11x")');
   sheet.getRange("C19").setFormula('=IFERROR(SUMIF(Pagamentos!J:J;"Anual 11x";Pagamentos!L:L);0)');
-  sheet.getRange("A20").setValue("Semestral à vista");
-  sheet.getRange("B20").setFormula('=COUNTIF(Pagamentos!J:J;"Semestral à vista")');
-  sheet.getRange("C20").setFormula('=IFERROR(SUMIF(Pagamentos!J:J;"Semestral à vista";Pagamentos!L:L);0)');
-  sheet.getRange("A21").setValue("Semestral 6x");
-  sheet.getRange("B21").setFormula('=COUNTIF(Pagamentos!J:J;"Semestral 6x")');
-  sheet.getRange("C21").setFormula('=IFERROR(SUMIF(Pagamentos!J:J;"Semestral 6x";Pagamentos!L:L);0)');
-  sheet.getRange("A22").setValue("Mensal");
-  sheet.getRange("B22").setFormula('=COUNTIF(Pagamentos!J:J;"Mensal")');
-  sheet.getRange("C22").setFormula('=IFERROR(SUMIF(Pagamentos!J:J;"Mensal";Pagamentos!L:L);0)');
-  sheet.getRange("A23").setValue("Outros / legado");
-  sheet.getRange("B23").setFormula(
-    '=IFERROR(COUNTA(Pagamentos!J2:J)-B15-B16-B17-B18-B19-B20-B21-B22;0)'
+  sheet.getRange("A20").setValue("12x");
+  sheet.getRange("B20").setFormula('=COUNTIF(Pagamentos!J:J;"Anual 12x")');
+  sheet.getRange("C20").setFormula('=IFERROR(SUMIF(Pagamentos!J:J;"Anual 12x";Pagamentos!L:L);0)');
+  sheet.getRange("A21").setValue("Semestral à vista");
+  sheet.getRange("B21").setFormula('=COUNTIF(Pagamentos!J:J;"Semestral à vista")');
+  sheet.getRange("C21").setFormula('=IFERROR(SUMIF(Pagamentos!J:J;"Semestral à vista";Pagamentos!L:L);0)');
+  sheet.getRange("A22").setValue("Semestral 6x");
+  sheet.getRange("B22").setFormula('=COUNTIF(Pagamentos!J:J;"Semestral 6x")');
+  sheet.getRange("C22").setFormula('=IFERROR(SUMIF(Pagamentos!J:J;"Semestral 6x";Pagamentos!L:L);0)');
+  sheet.getRange("A23").setValue("Mensal");
+  sheet.getRange("B23").setFormula('=COUNTIF(Pagamentos!J:J;"Mensal")');
+  sheet.getRange("C23").setFormula('=IFERROR(SUMIF(Pagamentos!J:J;"Mensal";Pagamentos!L:L);0)');
+  sheet.getRange("A24").setValue("Outros / legado");
+  sheet.getRange("B24").setFormula(
+    '=IFERROR(COUNTA(Pagamentos!J2:J)-B15-B16-B17-B18-B19-B20-B21-B22-B23;0)'
   );
-  sheet.getRange("C23").setFormula(
-    '=IFERROR(SUM(Pagamentos!L2:L)-C15-C16-C17-C18-C19-C20-C21-C22;0)'
+  sheet.getRange("C24").setFormula(
+    '=IFERROR(SUM(Pagamentos!L2:L)-C15-C16-C17-C18-C19-C20-C21-C22-C23;0)'
   );
-  sheet.getRange("C15:C23").setNumberFormat('"R$"#,##0.00');
+  sheet.getRange("C15:C24").setNumberFormat('"R$"#,##0.00');
 
   // Dinâmico: tudo que existir em Periodicidade
-  sheet.getRange("A25").setValue("Todas as periodicidades (automático)").setFontWeight("bold").setFontSize(13).setFontColor(COR_HEADER_FG).setBackground(COR_HEADER_BG);
-  sheet.getRange("A25:C25").merge();
-  sheet.getRange("A26").setFormula(
+  sheet.getRange("A26").setValue("Todas as periodicidades (automático)").setFontWeight("bold").setFontSize(13).setFontColor(COR_HEADER_FG).setBackground(COR_HEADER_BG);
+  sheet.getRange("A26:C26").merge();
+  sheet.getRange("A27").setFormula(
     '=IFERROR(QUERY(Pagamentos!J:L;"select J, count(J), sum(L) where J is not null and J <> \'\' group by J label J \'Forma\', count(J) \'Qtd\', sum(L) \'Valor\'";1);"Sem dados em Pagamentos")'
   );
 
