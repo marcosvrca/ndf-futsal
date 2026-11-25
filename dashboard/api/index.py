@@ -561,7 +561,11 @@ def _credentials():
     ]
     raw = (os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON") or "").strip()
     if raw:
-        return Credentials.from_service_account_info(json.loads(raw), scopes=scopes)
+        info = json.loads(raw)
+        key = info.get("private_key")
+        if isinstance(key, str) and "\\n" in key and "\n" not in key:
+            info["private_key"] = key.replace("\\n", "\n")
+        return Credentials.from_service_account_info(info, scopes=scopes)
     path = (os.getenv("GOOGLE_SERVICE_ACCOUNT_FILE") or "").strip()
     if path and os.path.isfile(path):
         return Credentials.from_service_account_file(path, scopes=scopes)
@@ -592,14 +596,28 @@ _SHEET_ERRORS: list[str] = []
 
 
 def _fmt_err(err: BaseException) -> str:
-    text = str(err).strip() or repr(err)
-    return f"{type(err).__name__}: {text}"[:280]
+    parts = [type(err).__name__]
+    text = str(err).strip()
+    if text:
+        parts.append(text)
+    cause = getattr(err, "__cause__", None) or getattr(err, "__context__", None)
+    if cause is not None:
+        cause_txt = str(cause).strip() or repr(cause)
+        parts.append(f"cause={type(cause).__name__}: {cause_txt}")
+        response = getattr(cause, "response", None)
+        if response is not None:
+            try:
+                body = response.text if hasattr(response, "text") else str(response)
+                parts.append(f"body={str(body)[:220]}")
+            except Exception:
+                pass
+    return " | ".join(parts)[:500]
 
 
 def _note_sheet_error(msg: str) -> None:
     text = str(msg or "").strip()
     if text and text not in _SHEET_ERRORS:
-        _SHEET_ERRORS.append(text[:280])
+        _SHEET_ERRORS.append(text[:500])
 
 
 def _sa_email() -> str:
@@ -675,6 +693,7 @@ def _probe_sheets() -> dict[str, Any]:
     info: dict[str, Any] = {
         "configured": configured(),
         "sheet_id_set": bool(sheet_id),
+        "sheet_id": sheet_id,
         "sheet_id_suffix": sheet_id[-8:] if len(sheet_id) >= 8 else sheet_id,
         "service_account": _sa_email() or "(não lido)",
         "titles": [],
@@ -862,10 +881,12 @@ def load_dashboard() -> dict[str, Any]:
     message = "Painel gerencial com dados ao vivo da planilha."
     if not pagamentos and not cadastro_rows:
         sa = _sa_email()
+        sheet_id = (os.getenv("GOOGLE_SHEETS_ID") or "").strip()
         share_hint = (
-            f" Compartilhe a planilha com {sa} como Leitor."
-            if sa
-            else " Compartilhe a planilha com o e-mail da service account (Leitor) e confira GOOGLE_SHEETS_ID."
+            f" Confira se a planilha compartilhada é exatamente a do ID {sheet_id} "
+            f"(URL: docs.google.com/spreadsheets/d/{sheet_id}/edit) com {sa} como Editor/Leitor."
+            if sa and sheet_id
+            else " Compartilhe a planilha com o e-mail da service account e confira GOOGLE_SHEETS_ID."
         )
         err_txt = " | ".join(_SHEET_ERRORS[:2]) if _SHEET_ERRORS else "nenhuma linha lida nas abas Pagamentos/unidades."
         message = f"Conectado, mas sem dados da planilha: {err_txt}.{share_hint}"
